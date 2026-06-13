@@ -159,12 +159,13 @@
   .tabbtn.on{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
   .cmd{ position:relative; background:#161b26; border-radius:12px; padding:17px 18px; margin:10px 0;
     border:1px solid #20283a; box-shadow:0 10px 30px -16px rgba(28,34,48,.6); }
-  .cmd pre{ font-family:"IBM Plex Mono", monospace; font-size:13.5px; color:#e8e2d4; overflow-x:auto; line-height:1.9; }
-  .cmd .prompt{ color:var(--vermilion); user-select:none; }
+  .cmd pre{ font-family:"IBM Plex Mono", monospace; font-size:13.5px; color:#e8e2d4; overflow-x:auto;
+    line-height:1.9; padding-right:74px; }
+  .cmd .prompt{ color:#f6a07a; user-select:none; }
   .cmd .muted{ color:#7c869c; }
-  .copy{ position:absolute; top:12px; right:12px; font-family:"IBM Plex Mono", monospace; font-size:10.5px;
+  .copy{ position:absolute; top:10px; right:10px; font-family:"IBM Plex Mono", monospace; font-size:10.5px;
     letter-spacing:.06em; text-transform:uppercase; padding:6px 10px; border-radius:7px; cursor:pointer;
-    background:#222a3c; border:1px solid #2f3a52; color:#aeb6c8; transition:all .16s ease; }
+    background:#222a3c; border:1px solid #2f3a52; color:#c4cad8; transition:all .16s ease; }
   .copy:hover{ color:#fff; border-color:var(--teal); }
   .copy.done{ background:var(--teal); border-color:var(--teal); color:#fff; }
   .note{ font-size:.92rem; color:var(--ink-soft); margin-top:10px; }
@@ -177,8 +178,9 @@
   .step-num{ width:32px; height:32px; border-radius:50%; background:var(--ink); color:var(--paper);
     font-family:"Fraunces", serif; font-size:1.05rem; display:flex; align-items:center; justify-content:center; flex:none; }
   .step-title{ font-family:"Fraunces", serif; font-size:1.25rem; font-weight:600; margin-bottom:8px; }
-  .cmd.mini{ padding:11px 14px; margin:4px 0 11px; }
-  .cmd.mini pre{ font-size:13px; line-height:1.4; }
+  .cmd.mini{ padding:13px 16px; margin:4px 0 11px; }
+  .cmd.mini pre{ font-size:13px; line-height:1.4; padding-right:74px; }
+  .cmd.mini .copy{ top:50%; transform:translateY(-50%); }
   .step-detail{ font-size:.95rem; color:var(--ink-soft); max-width:62ch; }
   .step-detail b{ color:var(--ink); }
   .step-detail code{ font-family:"IBM Plex Mono", monospace; background:var(--paper-3); padding:1px 5px; border-radius:4px; font-size:.84em; }
