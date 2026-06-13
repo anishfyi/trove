@@ -102,39 +102,39 @@
     border:1px solid var(--line-2); border-radius:9px; padding:12px 16px; text-decoration:none; transition:all .14s ease; }
   .btn-ghost:hover{ color:var(--ink); border-color:var(--ink-faint); text-decoration:none; }
 
-  /* ───────────────── memory garden ───────────────── */
-  .hero-garden{ justify-self:center; width:100%; max-width:242px; }
-  .garden{ position:relative; max-width:242px; margin:0 auto; background:
-      radial-gradient(120% 75% at 50% 22%, rgba(123,185,138,.16), transparent 60%),
+  /* ───────────────── memory garden (small square) ───────────────── */
+  .hero-garden{ justify-self:center; width:100%; max-width:230px; }
+  .garden{ position:relative; width:100%; max-width:230px; aspect-ratio:1 / 1; margin:0 auto;
+    display:flex; flex-direction:column; background:
+      radial-gradient(120% 70% at 50% 22%, rgba(123,185,138,.16), transparent 60%),
       linear-gradient(180deg, #fbf7ee, var(--paper-2));
-    border:1px solid var(--line); border-radius:16px; padding:8px 13px 14px;
+    border:1px solid var(--line); border-radius:16px; padding:12px 14px;
     box-shadow:0 16px 40px -26px rgba(28,34,48,.45); }
-  .garden svg{ display:block; width:66%; max-width:138px; height:auto; margin:2px auto 0; }
-  .shelf{ height:8px; margin:0 8px; border-radius:0 0 8px 8px;
+  .garden svg{ display:block; width:46%; max-width:96px; height:auto; margin:0 auto; }
+  .shelf{ height:6px; margin:2px 6px 0; border-radius:0 0 8px 8px;
     background:linear-gradient(180deg, var(--line-2), transparent); }
 
-  .garden-bar{ display:flex; align-items:center; gap:12px; margin-top:12px; flex-wrap:wrap; }
-  .grow-btn{ font-family:"IBM Plex Mono", monospace; font-size:12.5px; letter-spacing:.02em;
-    background:var(--vermilion); color:#fff; border:none; border-radius:9px; padding:11px 15px;
-    cursor:pointer; display:inline-flex; align-items:center; gap:8px; transition:transform .12s ease, box-shadow .2s ease;
-    box-shadow:0 8px 18px -8px rgba(216,58,34,.7); }
+  .controls{ margin-top:auto; }
+  .grow-btn{ width:100%; justify-content:center; font-family:"IBM Plex Mono", monospace;
+    font-size:11.5px; letter-spacing:.02em; background:var(--vermilion); color:#fff; border:none;
+    border-radius:9px; padding:9px 12px; cursor:pointer; display:inline-flex; align-items:center;
+    gap:7px; transition:transform .12s ease, box-shadow .2s ease; box-shadow:0 8px 18px -8px rgba(216,58,34,.7); }
   .grow-btn:hover{ transform:translateY(-2px); }
   .grow-btn:active{ transform:translateY(0) scale(.97); }
-  .grow-btn .plus{ font-size:15px; line-height:1; }
-  .count{ font-family:"Fraunces", serif; font-size:1.3rem; color:var(--ink); line-height:1; }
-  .count small{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; color:var(--ink-faint);
-    text-transform:uppercase; letter-spacing:.12em; display:block; margin-top:2px; }
-  .reset{ margin-left:auto; font-family:"IBM Plex Mono", monospace; font-size:11px; color:var(--ink-faint);
+  .grow-btn .plus{ font-size:14px; line-height:1; }
+  .meta{ display:flex; align-items:baseline; gap:7px; margin-top:9px; }
+  .count{ font-family:"Fraunces", serif; font-size:1.2rem; color:var(--ink); line-height:1; }
+  .meta-lbl{ font-family:"IBM Plex Mono", monospace; font-size:9.5px; color:var(--ink-faint);
+    text-transform:uppercase; letter-spacing:.12em; }
+  .overflow-note{ font-family:"IBM Plex Mono", monospace; font-size:9px; color:var(--leaf); }
+  .reset{ margin-left:auto; font-family:"IBM Plex Mono", monospace; font-size:10.5px; color:var(--ink-faint);
     background:none; border:none; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
   .reset:hover{ color:var(--vermilion); }
-  .latest{ margin-top:11px; display:flex; align-items:center; gap:9px; font-size:.9rem; color:var(--ink-soft);
-    min-height:22px; }
-  .latest .swatch{ width:10px; height:10px; border-radius:50% 50% 50% 0; transform:rotate(45deg); flex:none; }
-  .latest .lt{ font-family:"IBM Plex Mono", monospace; font-size:10px; text-transform:uppercase;
-    letter-spacing:.1em; color:var(--ink-faint); }
-  .garden-cap{ margin-top:12px; font-size:.86rem; color:var(--ink-faint); font-style:italic;
-    font-family:"Newsreader", serif; }
-  .overflow-note{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; color:var(--leaf); }
+  .latest{ display:flex; align-items:center; gap:7px; margin-top:8px; min-width:0; font-size:.78rem; color:var(--ink-soft); }
+  .latest .swatch{ width:9px; height:9px; border-radius:50% 50% 50% 0; transform:rotate(45deg); flex:none; }
+  .latest .lt{ font-family:"IBM Plex Mono", monospace; font-size:9px; text-transform:uppercase;
+    letter-spacing:.1em; color:var(--ink-faint); flex:none; }
+  .latest .lbl{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
 
   /* plant pieces */
   .stem{ fill:none; stroke:var(--leaf); stroke-width:4.5; stroke-linecap:round;
@@ -316,24 +316,19 @@
         </svg>
         <div class="shelf"></div>
 
-        <div class="garden-bar">
+        <div class="controls">
           <button class="grow-btn" @click="remember()"><span class="plus">+</span> remember a fact</button>
-          <div class="count"><span x-text="memories.length"></span><small>memories</small></div>
-          <button class="reset" @click="reset()" x-show="memories.length">clear</button>
-        </div>
-        <div class="latest">
-          <template x-if="last">
-            <span style="display:flex;align-items:center;gap:9px">
-              <span class="swatch" :style="`background:${leafColor(last.type)}`"></span>
-              <span class="lt" x-text="last.type"></span>
-              <span x-text="last.label"></span>
-            </span>
-          </template>
-          <template x-if="!last"><span style="color:var(--ink-faint)">an empty pot, ready to grow</span></template>
-        </div>
-        <div class="garden-cap">
-          Each leaf is one memory file. Feed it and watch it grow.
-          <span class="overflow-note" x-show="memories.length > 8" x-text="`(+${memories.length - 8} more rooted below)`"></span>
+          <div class="meta">
+            <span class="count" x-text="memories.length"></span>
+            <span class="meta-lbl">memories</span>
+            <span class="overflow-note" x-show="memories.length > 8" x-text="`+${memories.length - 8} rooted`"></span>
+            <button class="reset" @click="reset()" x-show="memories.length">clear</button>
+          </div>
+          <div class="latest">
+            <span class="swatch" :style="`background:${ last ? leafColor(last.type) : 'var(--ink-faint)' }`"></span>
+            <span class="lt" x-text="last ? last.type : 'empty'"></span>
+            <span class="lbl" x-text="last ? last.label : 'a pot ready to grow'"></span>
+          </div>
         </div>
       </div>
     </aside>
