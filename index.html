@@ -267,7 +267,7 @@
 
           <g filter="url(#sketch)">
             <!-- stem (gentle curve) -->
-            <path class="stem" d="M100,158 C 97,124 103,90 100,52"/>
+            <path class="stem" :d="stemPath"/>
 
             <!-- LEAVES: 8 hand-drawn slots, sprout as memories grow -->
             <g x-show="memories.length>0" transform="translate(100 150) scale(1 1)"><path class="leaf" :fill="leafColorAt(0)" d="M0,0 C7,-3 16,-7 24,-16 C25,-17 24,-18 22,-17 C14,-12 6,-7 0,-2 Z"/><path class="vein" d="M1,-1 C8,-6 15,-10 21,-15"/></g>
@@ -279,27 +279,7 @@
             <g x-show="memories.length>6" transform="translate(100 84) scale(1 1)"><path class="leaf" :fill="leafColorAt(6)" d="M0,0 C7,-3 16,-7 24,-16 C25,-17 24,-18 22,-17 C14,-12 6,-7 0,-2 Z"/><path class="vein" d="M1,-1 C8,-6 15,-10 21,-15"/></g>
             <g x-show="memories.length>7" transform="translate(100 73) scale(-1 1)"><path class="leaf" :fill="leafColorAt(7)" d="M0,0 C7,-3 16,-7 24,-16 C25,-17 24,-18 22,-17 C14,-12 6,-7 0,-2 Z"/><path class="vein" d="M1,-1 C8,-6 15,-10 21,-15"/></g>
 
-            <!-- FLOWER: 8 curvy hand-drawn petals, in full bloom once anything is remembered -->
-            <g x-show="memories.length>0">
-              <g transform="rotate(0 100 46) translate(100 46)">  <path class="petal" fill="var(--gold)" d="M0,-4 C-7,-11 -12,-21 -7,-31 C-5,-36 -1,-37 0,-37 C1,-37 5,-36 7,-31 C12,-21 7,-11 0,-4 Z"/></g>
-              <g transform="rotate(45 100 46) translate(100 46)"> <path class="petal" fill="#e0b657"     d="M0,-4 C-7,-11 -12,-21 -7,-31 C-5,-36 -1,-37 0,-37 C1,-37 5,-36 7,-31 C12,-21 7,-11 0,-4 Z"/></g>
-              <g transform="rotate(90 100 46) translate(100 46)"> <path class="petal" fill="var(--gold)" d="M0,-4 C-7,-11 -12,-21 -7,-31 C-5,-36 -1,-37 0,-37 C1,-37 5,-36 7,-31 C12,-21 7,-11 0,-4 Z"/></g>
-              <g transform="rotate(135 100 46) translate(100 46)"><path class="petal" fill="#e0b657"     d="M0,-4 C-7,-11 -12,-21 -7,-31 C-5,-36 -1,-37 0,-37 C1,-37 5,-36 7,-31 C12,-21 7,-11 0,-4 Z"/></g>
-              <g transform="rotate(180 100 46) translate(100 46)"><path class="petal" fill="var(--gold)" d="M0,-4 C-7,-11 -12,-21 -7,-31 C-5,-36 -1,-37 0,-37 C1,-37 5,-36 7,-31 C12,-21 7,-11 0,-4 Z"/></g>
-              <g transform="rotate(225 100 46) translate(100 46)"><path class="petal" fill="#e0b657"     d="M0,-4 C-7,-11 -12,-21 -7,-31 C-5,-36 -1,-37 0,-37 C1,-37 5,-36 7,-31 C12,-21 7,-11 0,-4 Z"/></g>
-              <g transform="rotate(270 100 46) translate(100 46)"><path class="petal" fill="var(--gold)" d="M0,-4 C-7,-11 -12,-21 -7,-31 C-5,-36 -1,-37 0,-37 C1,-37 5,-36 7,-31 C12,-21 7,-11 0,-4 Z"/></g>
-              <g transform="rotate(315 100 46) translate(100 46)"><path class="petal" fill="#e0b657"     d="M0,-4 C-7,-11 -12,-21 -7,-31 C-5,-36 -1,-37 0,-37 C1,-37 5,-36 7,-31 C12,-21 7,-11 0,-4 Z"/></g>
-              <!-- flower heart (the Trove seed) + stamen dots -->
-              <circle cx="100" cy="46" r="7.5" fill="var(--vermilion)" stroke="var(--sketch)" stroke-width="1"/>
-              <circle cx="100" cy="42.5" r="1.1" fill="#ffd98a"/><circle cx="103.4" cy="44.6" r="1.1" fill="#ffd98a"/>
-              <circle cx="102.2" cy="48.4" r="1.1" fill="#ffd98a"/><circle cx="97.8" cy="48.4" r="1.1" fill="#ffd98a"/>
-              <circle cx="96.6" cy="44.6" r="1.1" fill="#ffd98a"/>
-              <circle cx="97.4" cy="43.4" r="1.7" fill="rgba(255,255,255,.55)"/>
-            </g>
-            <!-- closed bud when the pot is empty -->
-            <g x-show="memories.length===0">
-              <path d="M100,54 C95,49 95,42 100,40 C105,42 105,49 100,54 Z" fill="var(--leaf)" stroke="var(--sketch)" stroke-width="1"/>
-            </g>
+            <!-- no flower: just a clean leafy sprig that grows with your memories -->
 
             <!-- terracotta pot, hand-drawn outline -->
             <ellipse cx="100" cy="156" rx="40" ry="7" fill="var(--soil)"/>
@@ -527,6 +507,13 @@ hiding query cost behind reflection.
       },
       // colour of the k-th leaf, by the type of the k-th memory
       leafColorAt(k){ return this.memories[k] ? this.leafColor(this.memories[k].type) : 'var(--leaf)'; },
+      // the stem grows just past the topmost leaf (no flower, just a sprig)
+      get stemPath(){
+        const v = Math.min(this.memories.length, 8);
+        const topLeafY = v >= 1 ? 150 - (v - 1) * 11 : 150;
+        const tipY = v >= 1 ? topLeafY - 13 : 152;
+        return `M100,158 L100,${tipY}`;
+      },
     };
   }
 </script>
