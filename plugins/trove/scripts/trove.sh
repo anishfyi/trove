@@ -64,7 +64,7 @@ case "$cmd" in
     dir="$(resolve)"
     term="${1:-}"
     if [ -z "$term" ]; then echo "usage: trove.sh grep <term>"; exit 2; fi
-    grep -rin --include='*.md' "$term" "$dir/entries" 2>/dev/null || echo "No matches."
+    grep -rin --include='*.md' --include='*.json' "$term" "$dir/entries" 2>/dev/null || echo "No matches."
     ;;
   *)
     echo "usage: trove.sh {path|init|list|grep} [--user|--project]"

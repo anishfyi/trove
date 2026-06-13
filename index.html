@@ -443,10 +443,15 @@ cp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/</pre>
   <!-- ───────── anatomy ───────── -->
   <section class="sec" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
     <div class="eyebrow"><span class="n">04</span> Anatomy of an entry</div>
-    <h2>One fact, one file</h2>
+    <h2>One fact, one file. Markdown or JSON.</h2>
+    <p class="lead-p">
+      Each entry is a single file, and Claude picks the format that fits what it is storing:
+      <b>Markdown</b> for prose (decisions, gotchas, conventions) and <b>JSON</b> for structured
+      context (mappings, lists of records, config, schemas). The index lists them side by side.
+    </p>
     <div class="anatomy">
       <div class="filecard">
-        <div class="bar"><span class="dot" style="background:var(--teal)"></span> entries/use-pgx-not-orm.md</div>
+        <div class="bar"><span class="dot" style="background:var(--teal)"></span> entries/use-pgx-not-orm.md <span style="margin-left:auto;color:var(--ink-faint)">prose &rarr; Markdown</span></div>
         <pre><span class="fm">---</span>
 <span class="key">title:</span> <span class="val">Use pgx + sqlc, not a heavy ORM, in Go services</span>
 <span class="key">slug:</span> <span class="val">use-pgx-not-orm</span>
@@ -463,11 +468,27 @@ hiding query cost behind reflection.
 <span class="key">**Related:**</span> [[deploy-single-binary]]</pre>
       </div>
       <div class="filecard">
-        <div class="bar"><span class="dot" style="background:var(--vermilion)"></span> INDEX.md</div>
+        <div class="bar"><span class="dot" style="background:var(--gold)"></span> entries/service-ports.json <span style="margin-left:auto;color:var(--ink-faint)">structured &rarr; JSON</span></div>
+        <pre>{
+  <span class="key">"title"</span>: <span class="val">"Local service ports"</span>,
+  <span class="key">"slug"</span>: <span class="val">"service-ports"</span>,
+  <span class="key">"type"</span>: <span class="val">"reference"</span>,
+  <span class="key">"created"</span>: <span class="val">"2026-06-14"</span>,
+  <span class="key">"tags"</span>: <span class="val">["infra", "ports"]</span>,
+  <span class="key">"summary"</span>: <span class="val">"which service runs on which port"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"web"</span>: <span class="val">8000</span>,
+    <span class="key">"trove-ui"</span>: <span class="val">8010</span>,
+    <span class="key">"partners"</span>: <span class="val">8011</span>
+  }
+}</pre>
+      </div>
+      <div class="filecard">
+        <div class="bar"><span class="dot" style="background:var(--vermilion)"></span> INDEX.md <span style="margin-left:auto;color:var(--ink-faint)">both, side by side</span></div>
         <pre><span class="fm"># Trove Index</span>
 
 - [Use pgx + sqlc, not a heavy ORM](entries/use-pgx-not-orm.md) - Go data-layer decision
-- [Deploy as a single static binary](entries/deploy-single-binary.md) - ops convention
+- [Local service ports](entries/service-ports.json) - infra reference (JSON)
 - [Staging DB mirrors prod nightly](entries/staging-db-mirror.md) - gotcha, do not seed</pre>
       </div>
     </div>

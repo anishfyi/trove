@@ -16,10 +16,11 @@ Answer a question using what is stored in the trove, grounded in the actual entr
    - If neither exists, tell the user there is no trove yet and offer **/trove:init**.
 
 2. **Scan the index.** Read `INDEX.md`. Use the one-line hooks (and `grep` over `entries/` for
-   keywords and tags) to find candidate entries.
+   keywords and tags) to find candidate entries. Entries may be `.md` or `.json`, so grep both.
 
-3. **Open the relevant entries.** Read the matching `entries/<slug>.md` files in full. Do not answer
-   from the index hooks alone; the body and frontmatter hold the real content.
+3. **Open the relevant entries.** Read the matching `entries/<slug>.md` or `entries/<slug>.json`
+   files in full. Do not answer from the index hooks alone; the body holds the real content. For a
+   JSON entry, the structured payload lives under its `data` key, parse and read it.
 
 4. **Synthesize an answer** grounded in those entries. **Cite** the entries you used by title or slug
    so the user can open them. If entries conflict or look stale (old `created` date, references a file

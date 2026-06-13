@@ -8,7 +8,7 @@ emit=""
 add_trove() {
   dir="$1"
   if [ -f "$dir/INDEX.md" ]; then
-    count=$(find "$dir/entries" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+    count=$(find "$dir/entries" \( -name '*.md' -o -name '*.json' \) 2>/dev/null | wc -l | tr -d ' ')
     pretty="${dir/#$HOME/~}"
     emit="${emit}
 ## Trove: ${pretty} (${count} entries)
