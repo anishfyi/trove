@@ -7,8 +7,9 @@ conventions and references as you work, and reloads it into context at the start
 
 Live page: **https://anishfyi.github.io/trove/**
 
-Every fact is one markdown file with frontmatter. The trove is portable, greppable, diffable, and
-yours. No database, no service, no lock-in.
+Every fact is one file, and Claude picks the format that fits it: **Markdown** for prose (decisions,
+gotchas, conventions) or **JSON** for structured context (mappings, lists, config, schemas). The
+trove is portable, greppable, diffable, and yours. No database, no service, no lock-in.
 
 ---
 
