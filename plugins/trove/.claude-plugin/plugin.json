@@ -1,0 +1,12 @@
+{
+  "name": "trove",
+  "description": "Build and maintain a personal, file-based knowledge trove as you use Claude Code: capture durable decisions, gotchas, preferences and references as atomic entries, and reload the index automatically at the start of every session.",
+  "version": "0.1.0",
+  "author": {
+    "name": "anishfyi"
+  },
+  "homepage": "https://anishfyi.github.io/trove/",
+  "repository": "https://github.com/anishfyi/trove",
+  "license": "MIT",
+  "keywords": ["memory", "trove", "knowledge", "notes", "skill"]
+}

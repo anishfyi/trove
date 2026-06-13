@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Codex - a personal memory index for Claude Code</title>
-<meta name="description" content="A Claude Code skill that builds and maintains a personal, file-based knowledge codex as you work, and reloads it every session." />
+<title>Trove - a personal memory index for Claude Code</title>
+<meta name="description" content="A Claude Code skill that builds and maintains a personal, file-based knowledge trove as you work, and reloads it every session." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -138,16 +138,16 @@
 </style>
 </head>
 
-<body x-data="codexsite()">
+<body x-data="trovesite()">
 <div class="wrap">
 
   <!-- masthead -->
   <header class="mast reveal">
-    <div class="tag"><span>Codex</span><span>a Claude Code skill</span></div>
-    <h1 class="logo">Codex<span class="dot">.</span></h1>
+    <div class="tag"><span>Trove</span><span>a Claude Code skill</span></div>
+    <h1 class="logo">Trove<span class="dot">.</span></h1>
     <p class="lede">A memory index that grows as you use Claude Code.</p>
     <p class="sub">
-      Install once and Claude starts keeping a <b>personal, file-based codex</b> of your decisions,
+      Install once and Claude starts keeping a <b>personal, file-based trove</b> of your decisions,
       gotchas, conventions and references. Every fact is one markdown file. It is portable, greppable,
       and yours, and it <b>reloads into context at the start of every session</b> so nothing learned
       gets forgotten.
@@ -167,13 +167,13 @@
     <div x-show="tab==='plugin'">
       <div class="cmd">
         <button class="copy" :class="{done: copied==='p1'}" @click="copy('p1', plugins)" x-text="copied==='p1' ? 'Copied' : 'Copy'"></button>
-        <pre><span class="prompt">/plugin</span> marketplace add anishfyi/claude-codex
-<span class="prompt">/plugin</span> install codex@anishfyi-codex</pre>
+        <pre><span class="prompt">/plugin</span> marketplace add anishfyi/trove
+<span class="prompt">/plugin</span> install trove@anishfyi-trove</pre>
       </div>
       <p class="note">
         Run these inside Claude Code. The first command registers this repo as a plugin marketplace;
-        the second installs the <code>codex</code> plugin (its skills and the session hook). Then run
-        <code>/codex:init</code> once to create your codex.
+        the second installs the <code>trove</code> plugin (its skills and the session hook). Then run
+        <code>/trove:init</code> once to create your trove.
       </p>
     </div>
 
@@ -181,8 +181,8 @@
       <div class="cmd">
         <button class="copy" :class="{done: copied==='m1'}" @click="copy('m1', manual)" x-text="copied==='m1' ? 'Copied' : 'Copy'"></button>
         <pre><span class="muted"># skills only (no auto-load hook)</span>
-git clone https://github.com/anishfyi/claude-codex /tmp/claude-codex
-cp -r /tmp/claude-codex/plugins/codex/skills/* ~/.claude/skills/</pre>
+git clone https://github.com/anishfyi/trove /tmp/trove
+cp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/</pre>
       </div>
       <p class="note">
         This copies the three skills into <code>~/.claude/skills/</code> so you get
@@ -199,17 +199,17 @@ cp -r /tmp/claude-codex/plugins/codex/skills/* ~/.claude/skills/</pre>
     <div class="grid">
       <div class="card">
         <div class="step">STEP 01</div>
-        <h3>Start it <code>/codex:init</code></h3>
-        <p>Scaffolds a codex at user scope (<code>~/.claude/codex</code>) or per project. Just markdown: an <code>INDEX.md</code> and an <code>entries/</code> folder.</p>
+        <h3>Start it <code>/trove:init</code></h3>
+        <p>Scaffolds a trove at user scope (<code>~/.claude/trove</code>) or per project. Just markdown: an <code>INDEX.md</code> and an <code>entries/</code> folder.</p>
       </div>
       <div class="card">
         <div class="step">STEP 02</div>
-        <h3>Capture it <code>/codex:remember</code></h3>
+        <h3>Capture it <code>/trove:remember</code></h3>
         <p>Distills a decision, gotcha, preference or reference into one atomic entry file and adds a one-line pointer to the index. Dedupes against what is already there.</p>
       </div>
       <div class="card">
         <div class="step">STEP 03</div>
-        <h3>Recall it <code>/codex:recall</code></h3>
+        <h3>Recall it <code>/trove:recall</code></h3>
         <p>Reads the index, opens the relevant entries, and answers grounded in them with citations, so past you can inform present you.</p>
       </div>
       <div class="card">
@@ -245,7 +245,7 @@ do not reintroduce a runtime ORM.
       </div>
       <div class="filecard">
         <div class="bar"><span class="dot" style="background:var(--teal)"></span> INDEX.md</div>
-        <pre><span class="fm"># Codex Index</span>
+        <pre><span class="fm"># Trove Index</span>
 
 - [Use pgx + sqlc, not a heavy ORM](entries/use-pgx-not-orm.md) - Go data-layer decision
 - [Deploy as a single static binary](entries/deploy-single-binary.md) - ops convention
@@ -261,14 +261,14 @@ do not reintroduce a runtime ORM.
     <table>
       <thead><tr><th>Command</th><th>What it does</th></tr></thead>
       <tbody>
-        <tr><td><code>/codex:init</code></td><td>Create the codex (user or project scope).</td></tr>
-        <tr><td><code>/codex:remember</code></td><td>Capture a durable learning as a new entry.</td></tr>
-        <tr><td><code>/codex:recall</code></td><td>Search the codex and answer from it.</td></tr>
+        <tr><td><code>/trove:init</code></td><td>Create the trove (user or project scope).</td></tr>
+        <tr><td><code>/trove:remember</code></td><td>Capture a durable learning as a new entry.</td></tr>
+        <tr><td><code>/trove:recall</code></td><td>Search the trove and answer from it.</td></tr>
         <tr><td><code>SessionStart hook</code></td><td>Loads the index into context automatically each session.</td></tr>
       </tbody>
     </table>
     <p class="note">
-      The skills also auto-trigger on intent: say "remember this in my codex" or "what do I know about
+      The skills also auto-trigger on intent: say "remember this in my trove" or "what do I know about
       X" and the right skill fires without typing the command.
     </p>
   </section>
@@ -282,7 +282,7 @@ do not reintroduce a runtime ORM.
       <a href="ENGINEERING.md">Engineering Design Doc</a>, both authored by anishfyi.
     </p>
     <div class="foot-links">
-      <a class="pill" href="https://github.com/anishfyi/claude-codex"><span class="ic">&#9733;</span> github.com/anishfyi/claude-codex</a>
+      <a class="pill" href="https://github.com/anishfyi/trove"><span class="ic">&#9733;</span> github.com/anishfyi/trove</a>
       <a class="pill" href="PRD.md"><span class="ic">&#167;</span> PRD</a>
       <a class="pill" href="ENGINEERING.md"><span class="ic">&#167;</span> Engineering Doc</a>
     </div>
@@ -293,12 +293,12 @@ do not reintroduce a runtime ORM.
 <style>[x-cloak]{ display:none !important; }</style>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script>
-  function codexsite(){
+  function trovesite(){
     return {
       tab: 'plugin',
       copied: null,
-      plugins: "/plugin marketplace add anishfyi/claude-codex\n/plugin install codex@anishfyi-codex",
-      manual: "git clone https://github.com/anishfyi/claude-codex /tmp/claude-codex\ncp -r /tmp/claude-codex/plugins/codex/skills/* ~/.claude/skills/",
+      plugins: "/plugin marketplace add anishfyi/trove\n/plugin install trove@anishfyi-trove",
+      manual: "git clone https://github.com/anishfyi/trove /tmp/trove\ncp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/",
       copy(id, text){
         navigator.clipboard.writeText(text).then(() => {
           this.copied = id;
