@@ -102,12 +102,13 @@
   .btn-ghost:hover{ color:var(--ink); border-color:var(--ink-faint); text-decoration:none; }
 
   /* ───────────────── memory garden ───────────────── */
-  .garden{ position:relative; background:
-      radial-gradient(120% 80% at 50% 18%, rgba(123,185,138,.14), transparent 62%),
+  .hero-garden{ justify-self:center; width:100%; max-width:300px; }
+  .garden{ position:relative; max-width:300px; margin:0 auto; background:
+      radial-gradient(120% 75% at 50% 20%, rgba(123,185,138,.16), transparent 60%),
       linear-gradient(180deg, #fbf7ee, var(--paper-2));
-    border:1px solid var(--line); border-radius:18px; padding:14px 14px 18px;
-    box-shadow:0 22px 50px -28px rgba(28,34,48,.45); }
-  .garden svg{ display:block; width:100%; height:auto; }
+    border:1px solid var(--line); border-radius:18px; padding:10px 14px 16px;
+    box-shadow:0 18px 44px -26px rgba(28,34,48,.45); }
+  .garden svg{ display:block; width:78%; max-width:210px; height:auto; margin:0 auto; }
   .shelf{ height:8px; margin:0 8px; border-radius:0 0 8px 8px;
     background:linear-gradient(180deg, var(--line-2), transparent); }
 
@@ -135,11 +136,10 @@
   .overflow-note{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; color:var(--leaf); }
 
   /* plant pieces */
-  .stem{ fill:none; stroke:var(--leaf); stroke-width:5; stroke-linecap:round;
-    stroke-dasharray:230; stroke-dashoffset:230; animation:draw 1.2s .2s ease forwards; }
+  .stem{ fill:none; stroke:var(--leaf); stroke-width:4.5; stroke-linecap:round;
+    stroke-dasharray:150; stroke-dashoffset:150; animation:draw 1s .2s ease forwards; }
   @keyframes draw{ to{ stroke-dashoffset:0; } }
-  .leaf{ transform-box:fill-box; transform-origin:0% 55%; animation:leafGrow .55s cubic-bezier(.2,.85,.3,1.25) both; }
-  .leaf-vein{ stroke:rgba(0,0,0,.14); stroke-width:1; fill:none; }
+  .leaf{ transform-box:fill-box; transform-origin:0% 55%; animation:leafGrow .5s cubic-bezier(.2,.85,.3,1.3) both; }
   @keyframes leafGrow{ from{ transform:scale(.04); opacity:0; } to{ transform:scale(1); opacity:1; } }
   .petal{ transform-box:fill-box; transform-origin:50% 100%; animation:bloom .5s cubic-bezier(.2,.85,.3,1.3) both; }
   @keyframes bloom{ from{ transform:scale(.05); opacity:0; } to{ transform:scale(1); opacity:.95; } }
@@ -255,35 +255,41 @@
     <!-- interactive memory garden -->
     <aside class="hero-garden reveal" style="animation-delay:.12s">
       <div class="garden">
-        <svg viewBox="0 0 260 300" role="img" aria-label="A potted plant that grows a leaf for every memory">
-          <!-- soft ground glow -->
-          <ellipse cx="130" cy="252" rx="92" ry="20" fill="rgba(111,74,48,.10)"/>
+        <svg viewBox="0 0 220 230" role="img" aria-label="A small potted plant that grows a leaf for every memory">
+          <!-- ground glow -->
+          <ellipse cx="110" cy="176" rx="74" ry="13" fill="rgba(111,74,48,.10)"/>
           <!-- stem -->
-          <path class="stem" d="M130,250 L130,46"/>
-          <!-- leaves: one per memory (max 8 shown) -->
-          <template x-for="(lf, k) in leaves" :key="k">
-            <g :transform="`translate(${lf.x} ${lf.y}) scale(${lf.side} 1)`">
-              <path class="leaf" :fill="lf.color" d="M0,0 C16,-2 30,-7 38,-22 C24,-18 9,-13 0,0 Z"/>
-              <path class="leaf-vein" d="M2,-1 C14,-6 24,-10 33,-19"/>
-            </g>
-          </template>
-          <!-- flower: blooms as memories accumulate -->
-          <template x-for="j in petals" :key="j">
-            <g :transform="`rotate(${(j-1)*60} 130 40)`">
-              <ellipse class="petal" cx="130" cy="24" rx="6.4" ry="12" :fill="j % 2 ? 'var(--gold)' : '#e0b657'"/>
-            </g>
-          </template>
-          <circle class="heart" x-show="memories.length > 0" cx="130" cy="40" r="7.5" fill="var(--vermilion)"/>
-          <circle x-show="memories.length > 0" cx="127.5" cy="37.5" r="2.4" fill="rgba(255,255,255,.55)"/>
-          <!-- closed bud when empty -->
-          <circle x-show="memories.length === 0" cx="130" cy="46" r="5.5" fill="var(--leaf)"/>
+          <path class="stem" d="M110,172 L110,56"/>
+
+          <!-- LEAVES: 8 fixed slots, each sprouts when its memory exists.
+               Hardcoded (not x-for) so they render in the SVG namespace. -->
+          <g x-show="memories.length>0" transform="translate(110 164) scale(1 1)"><path class="leaf" :fill="leafColorAt(0)" d="M0,0 C12,-2 22,-6 28,-16 C17,-13 7,-9 0,0 Z"/></g>
+          <g x-show="memories.length>1" transform="translate(110 151) scale(-1 1)"><path class="leaf" :fill="leafColorAt(1)" d="M0,0 C12,-2 22,-6 28,-16 C17,-13 7,-9 0,0 Z"/></g>
+          <g x-show="memories.length>2" transform="translate(110 138) scale(1 1)"><path class="leaf" :fill="leafColorAt(2)" d="M0,0 C12,-2 22,-6 28,-16 C17,-13 7,-9 0,0 Z"/></g>
+          <g x-show="memories.length>3" transform="translate(110 125) scale(-1 1)"><path class="leaf" :fill="leafColorAt(3)" d="M0,0 C12,-2 22,-6 28,-16 C17,-13 7,-9 0,0 Z"/></g>
+          <g x-show="memories.length>4" transform="translate(110 112) scale(1 1)"><path class="leaf" :fill="leafColorAt(4)" d="M0,0 C12,-2 22,-6 28,-16 C17,-13 7,-9 0,0 Z"/></g>
+          <g x-show="memories.length>5" transform="translate(110 99) scale(-1 1)"><path class="leaf" :fill="leafColorAt(5)" d="M0,0 C12,-2 22,-6 28,-16 C17,-13 7,-9 0,0 Z"/></g>
+          <g x-show="memories.length>6" transform="translate(110 86) scale(1 1)"><path class="leaf" :fill="leafColorAt(6)" d="M0,0 C12,-2 22,-6 28,-16 C17,-13 7,-9 0,0 Z"/></g>
+          <g x-show="memories.length>7" transform="translate(110 73) scale(-1 1)"><path class="leaf" :fill="leafColorAt(7)" d="M0,0 C12,-2 22,-6 28,-16 C17,-13 7,-9 0,0 Z"/></g>
+
+          <!-- FLOWER: petals bloom one by one as memories accumulate -->
+          <g x-show="memories.length>0" transform="rotate(0 110 53)"><ellipse class="petal" cx="110" cy="41" rx="5.4" ry="10" fill="var(--gold)"/></g>
+          <g x-show="memories.length>1" transform="rotate(60 110 53)"><ellipse class="petal" cx="110" cy="41" rx="5.4" ry="10" fill="#e0b657"/></g>
+          <g x-show="memories.length>2" transform="rotate(120 110 53)"><ellipse class="petal" cx="110" cy="41" rx="5.4" ry="10" fill="var(--gold)"/></g>
+          <g x-show="memories.length>3" transform="rotate(180 110 53)"><ellipse class="petal" cx="110" cy="41" rx="5.4" ry="10" fill="#e0b657"/></g>
+          <g x-show="memories.length>4" transform="rotate(240 110 53)"><ellipse class="petal" cx="110" cy="41" rx="5.4" ry="10" fill="var(--gold)"/></g>
+          <g x-show="memories.length>5" transform="rotate(300 110 53)"><ellipse class="petal" cx="110" cy="41" rx="5.4" ry="10" fill="#e0b657"/></g>
+          <!-- flower heart (the Trove seed) / closed bud when empty -->
+          <circle class="heart" x-show="memories.length>0" cx="110" cy="53" r="6.5" fill="var(--vermilion)"/>
+          <circle x-show="memories.length>0" cx="108" cy="51" r="2.1" fill="rgba(255,255,255,.55)"/>
+          <circle x-show="memories.length===0" cx="110" cy="56" r="5" fill="var(--leaf)"/>
 
           <!-- terracotta pot -->
-          <ellipse cx="130" cy="250" rx="58" ry="11" fill="var(--soil)"/>
-          <path d="M74,256 L186,256 L171,300 L89,300 Z" fill="var(--pot)"/>
-          <path d="M74,256 L186,256 L181,272 L79,272 Z" fill="var(--pot-2)" opacity=".55"/>
-          <rect x="66" y="244" width="128" height="18" rx="5" fill="var(--pot)"/>
-          <rect x="66" y="244" width="128" height="6" rx="3" fill="#cf7048"/>
+          <ellipse cx="110" cy="172" rx="46" ry="8" fill="var(--soil)"/>
+          <path d="M70,178 L150,178 L139,212 L81,212 Z" fill="var(--pot)"/>
+          <path d="M70,178 L150,178 L146,190 L74,190 Z" fill="var(--pot-2)" opacity=".5"/>
+          <rect x="62" y="168" width="96" height="15" rx="4" fill="var(--pot)"/>
+          <rect x="62" y="168" width="96" height="5" rx="2.5" fill="#cf7048"/>
         </svg>
         <div class="shelf"></div>
 
@@ -493,7 +499,7 @@ hiding query cost behind reflection.
       ],
       memories: [],
 
-      init(){ this.remember(); this.remember(); this.remember(); },
+      init(){ this.remember(); this.remember(); },
 
       remember(){
         const s = this.seeds[this.memories.length % this.seeds.length];
@@ -507,18 +513,8 @@ hiding query cost behind reflection.
         return ({ decision:'var(--teal)', gotcha:'var(--vermilion)', preference:'var(--gold)',
                   reference:'var(--blue)', project:'var(--leaf)', snippet:'var(--ink-soft)' })[type] || 'var(--leaf)';
       },
-
-      // up to 8 leaves climb the stem, alternating sides
-      get leaves(){
-        return this.memories.slice(0, 8).map((m, k) => ({
-          x: 130,
-          y: 250 - 30 - k * 23,
-          side: k % 2 === 0 ? 1 : -1,
-          color: this.leafColor(m.type),
-        }));
-      },
-      // up to 6 petals bloom as memories accumulate
-      get petals(){ return Math.min(this.memories.length, 6); },
+      // colour of the k-th leaf, by the type of the k-th memory
+      leafColorAt(k){ return this.memories[k] ? this.leafColor(this.memories[k].type) : 'var(--leaf)'; },
     };
   }
 </script>
