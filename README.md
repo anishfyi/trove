@@ -17,16 +17,21 @@ yours. No database, no service, no lock-in.
 Run these inside Claude Code:
 
 ```
-/plugin marketplace add anishfyi/trove
+/plugin marketplace add https://github.com/anishfyi/trove.git
 /plugin install trove@anishfyi-trove
 ```
 
-The first command registers this repo as a plugin marketplace; the second installs the `trove`
-plugin, which provides three skills and a SessionStart hook. Then create your trove once:
+The first command registers this repo as a plugin marketplace over **HTTPS** (no SSH keys needed);
+the second installs the `trove` plugin, which provides three skills and a SessionStart hook. Then
+create your trove once:
 
 ```
 /trove:init
 ```
+
+> If you have SSH configured for GitHub, the shorthand `/plugin marketplace add anishfyi/trove` also
+> works. Use the HTTPS `.git` URL above if you hit an SSH `Permission denied (publickey)` error, since
+> the shorthand can resolve to `git@github.com` which needs SSH keys.
 
 ### Manual (skills only, no auto-load hook)
 
