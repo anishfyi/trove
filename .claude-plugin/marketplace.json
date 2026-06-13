@@ -1,0 +1,17 @@
+{
+  "name": "anishfyi-codex",
+  "owner": {
+    "name": "anishfyi"
+  },
+  "description": "A personal knowledge codex for Claude Code, by anishfyi. Capture durable learnings as you work and reload them every session.",
+  "plugins": [
+    {
+      "name": "codex",
+      "source": "./plugins/codex",
+      "description": "Build and maintain a personal, file-based codex of decisions, gotchas, preferences and references. Auto-loads each session via a SessionStart hook.",
+      "category": "productivity",
+      "keywords": ["memory", "codex", "knowledge", "notes"],
+      "license": "MIT"
+    }
+  ]
+}

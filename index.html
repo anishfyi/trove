@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Codex - a personal memory index for Claude Code</title>
+<meta name="description" content="A Claude Code skill that builds and maintains a personal, file-based knowledge codex as you work, and reloads it every session." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root{
+    --paper:    #f5f0e6;   /* warm cream                */
+    --paper-2:  #efe8d9;   /* card                      */
+    --paper-3:  #e7ddca;   /* raised / rule             */
+    --ink:      #1c2230;   /* primary text (ink navy)   */
+    --ink-soft: #4a5263;   /* secondary text            */
+    --ink-faint:#8a8676;   /* tertiary / labels         */
+    --vermilion:#d83a22;   /* primary accent (stamp)    */
+    --teal:     #2f6f6a;   /* secondary accent          */
+    --line:     #d8cdb6;
+    --line-2:   #cbbfa4;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"IBM Plex Sans", sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    /* faint index-card ruling */
+    background-image:
+      linear-gradient(to bottom, rgba(0,0,0,0) 0, rgba(0,0,0,0) 33px, rgba(47,111,106,.06) 34px),
+      radial-gradient(120% 90% at 50% -10%, #fbf7ee 0%, var(--paper) 60%);
+    background-size:100% 34px, 100% 100%;
+  }
+  ::selection{ background:var(--vermilion); color:var(--paper); }
+  a{ color:var(--teal); text-decoration:none; }
+  a:hover{ text-decoration:underline; }
+
+  .wrap{ max-width:880px; margin:0 auto; padding:0 26px; }
+
+  /* ── masthead ── */
+  header.mast{ padding:64px 0 30px; border-bottom:2px solid var(--ink); }
+  .tag{ font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:.34em;
+    text-transform:uppercase; color:var(--vermilion); display:flex; align-items:center; gap:12px; }
+  .tag::after{ content:""; flex:1; height:1px; background:var(--line-2); }
+  h1.logo{ font-family:"Newsreader", serif; font-weight:600; font-size:clamp(3.4rem,11vw,6.5rem);
+    line-height:.92; letter-spacing:-.02em; margin:14px 0 0; }
+  h1.logo .dot{ color:var(--vermilion); }
+  .lede{ font-family:"Newsreader", serif; font-size:clamp(1.2rem,2.6vw,1.6rem); font-style:italic;
+    color:var(--ink-soft); margin-top:16px; max-width:34ch; }
+  .sub{ margin-top:16px; max-width:60ch; color:var(--ink-soft); font-size:1.02rem; }
+  .sub b{ color:var(--ink); font-weight:600; }
+
+  .reveal{ opacity:0; transform:translateY(12px); animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards; }
+  @keyframes rise{ to{ opacity:1; transform:none; } }
+
+  /* ── section scaffolding ── */
+  section{ padding:42px 0; border-bottom:1px solid var(--line); }
+  .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--ink-faint); margin-bottom:18px; display:flex; gap:10px; align-items:center; }
+  .eyebrow .n{ color:var(--vermilion); font-weight:600; }
+  h2{ font-family:"Newsreader", serif; font-weight:600; font-size:1.9rem; letter-spacing:-.01em; margin-bottom:6px; }
+
+  /* ── install ── */
+  .tabs{ display:flex; gap:6px; margin:6px 0 16px; }
+  .tabbtn{ font-family:"IBM Plex Mono", monospace; font-size:12px; padding:8px 14px; border-radius:8px;
+    border:1px solid var(--line-2); background:transparent; color:var(--ink-soft); cursor:pointer;
+    transition:all .16s ease; }
+  .tabbtn:hover{ color:var(--ink); border-color:var(--ink-faint); }
+  .tabbtn.on{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+
+  .cmd{ position:relative; background:#161b26; border-radius:10px; padding:16px 18px; margin:10px 0;
+    border:1px solid #20283a; box-shadow:0 6px 22px rgba(28,34,48,.12); }
+  .cmd pre{ font-family:"IBM Plex Mono", monospace; font-size:13.5px; color:#e8e2d4; overflow-x:auto;
+    line-height:1.85; }
+  .cmd .prompt{ color:var(--vermilion); user-select:none; }
+  .cmd .muted{ color:#7c869c; }
+  .copy{ position:absolute; top:11px; right:11px; font-family:"IBM Plex Mono", monospace; font-size:10.5px;
+    letter-spacing:.06em; text-transform:uppercase; padding:5px 9px; border-radius:6px; cursor:pointer;
+    background:#222a3c; border:1px solid #2f3a52; color:#aeb6c8; transition:all .16s ease; }
+  .copy:hover{ color:#fff; border-color:var(--teal); }
+  .copy.done{ background:var(--teal); border-color:var(--teal); color:#fff; }
+  .note{ font-size:.9rem; color:var(--ink-soft); margin-top:8px; }
+  .note code{ font-family:"IBM Plex Mono", monospace; background:var(--paper-3); padding:1px 5px; border-radius:4px; font-size:.86em; }
+
+  /* ── lifecycle cards ── */
+  .grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:8px; }
+  .card{ background:var(--paper-2); border:1px solid var(--line); border-radius:12px; padding:18px 19px;
+    position:relative; }
+  .card .step{ font-family:"IBM Plex Mono", monospace; font-size:11px; color:var(--vermilion);
+    letter-spacing:.1em; }
+  .card h3{ font-family:"Newsreader", serif; font-size:1.3rem; font-weight:600; margin:5px 0 6px; }
+  .card h3 code{ font-family:"IBM Plex Mono", monospace; font-size:.78em; color:var(--teal);
+    background:var(--paper-3); padding:2px 7px; border-radius:5px; }
+  .card p{ font-size:.94rem; color:var(--ink-soft); }
+
+  /* ── entry anatomy ── */
+  .anatomy{ display:grid; grid-template-columns:1fr; gap:14px; }
+  .filecard{ background:#fbf8f0; border:1px solid var(--line-2); border-radius:12px; overflow:hidden;
+    box-shadow:0 4px 18px rgba(28,34,48,.07); }
+  .filecard .bar{ display:flex; align-items:center; gap:8px; padding:9px 14px; background:var(--paper-3);
+    border-bottom:1px solid var(--line-2); font-family:"IBM Plex Mono", monospace; font-size:11.5px; color:var(--ink-soft); }
+  .filecard .bar .dot{ width:9px; height:9px; border-radius:50%; }
+  .filecard pre{ padding:16px 18px; font-family:"IBM Plex Mono", monospace; font-size:12.5px;
+    line-height:1.7; color:var(--ink); overflow-x:auto; }
+  .fm{ color:var(--ink-faint); }
+  .key{ color:var(--vermilion); }
+  .val{ color:var(--teal); }
+
+  /* ── commands table ── */
+  table{ width:100%; border-collapse:collapse; margin-top:6px; font-size:.94rem; }
+  th, td{ text-align:left; padding:11px 12px; border-bottom:1px solid var(--line); }
+  th{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink-faint); }
+  td code{ font-family:"IBM Plex Mono", monospace; color:var(--vermilion); font-size:.92em; }
+
+  /* ── footer ── */
+  footer{ padding:40px 0 80px; }
+  .stamp{ font-family:"Newsreader", serif; font-style:italic; font-size:1.5rem; }
+  .stamp b{ font-style:normal; font-weight:600; color:var(--vermilion); }
+  .madeby{ margin-top:10px; color:var(--ink-soft); font-size:.96rem; }
+  .madeby a{ font-weight:600; }
+  .foot-links{ margin-top:18px; display:flex; gap:10px; flex-wrap:wrap; }
+  .pill{ font-family:"IBM Plex Mono", monospace; font-size:11.5px; padding:8px 13px; border-radius:30px;
+    border:1px solid var(--line-2); color:var(--ink-soft); display:inline-flex; align-items:center; gap:7px; }
+  .pill:hover{ border-color:var(--vermilion); color:var(--ink); text-decoration:none; }
+  .pill .ic{ color:var(--vermilion); }
+
+  @media (max-width:640px){
+    .grid{ grid-template-columns:1fr; }
+    h1.logo{ font-size:3.2rem; }
+  }
+</style>
+</head>
+
+<body x-data="codexsite()">
+<div class="wrap">
+
+  <!-- masthead -->
+  <header class="mast reveal">
+    <div class="tag"><span>Codex</span><span>a Claude Code skill</span></div>
+    <h1 class="logo">Codex<span class="dot">.</span></h1>
+    <p class="lede">A memory index that grows as you use Claude Code.</p>
+    <p class="sub">
+      Install once and Claude starts keeping a <b>personal, file-based codex</b> of your decisions,
+      gotchas, conventions and references. Every fact is one markdown file. It is portable, greppable,
+      and yours, and it <b>reloads into context at the start of every session</b> so nothing learned
+      gets forgotten.
+    </p>
+  </header>
+
+  <!-- install -->
+  <section class="reveal" style="animation-delay:.06s">
+    <div class="eyebrow"><span class="n">01</span> Install</div>
+    <h2>Add it to Claude Code</h2>
+
+    <div class="tabs">
+      <button class="tabbtn" :class="{on: tab==='plugin'}" @click="tab='plugin'">Plugin (recommended)</button>
+      <button class="tabbtn" :class="{on: tab==='manual'}" @click="tab='manual'">Manual</button>
+    </div>
+
+    <div x-show="tab==='plugin'">
+      <div class="cmd">
+        <button class="copy" :class="{done: copied==='p1'}" @click="copy('p1', plugins)" x-text="copied==='p1' ? 'Copied' : 'Copy'"></button>
+        <pre><span class="prompt">/plugin</span> marketplace add anishfyi/claude-codex
+<span class="prompt">/plugin</span> install codex@anishfyi-codex</pre>
+      </div>
+      <p class="note">
+        Run these inside Claude Code. The first command registers this repo as a plugin marketplace;
+        the second installs the <code>codex</code> plugin (its skills and the session hook). Then run
+        <code>/codex:init</code> once to create your codex.
+      </p>
+    </div>
+
+    <div x-show="tab==='manual'" x-cloak>
+      <div class="cmd">
+        <button class="copy" :class="{done: copied==='m1'}" @click="copy('m1', manual)" x-text="copied==='m1' ? 'Copied' : 'Copy'"></button>
+        <pre><span class="muted"># skills only (no auto-load hook)</span>
+git clone https://github.com/anishfyi/claude-codex /tmp/claude-codex
+cp -r /tmp/claude-codex/plugins/codex/skills/* ~/.claude/skills/</pre>
+      </div>
+      <p class="note">
+        This copies the three skills into <code>~/.claude/skills/</code> so you get
+        <code>/init</code>, <code>/remember</code> and <code>/recall</code>. The automatic
+        session-load hook only ships with the plugin install above.
+      </p>
+    </div>
+  </section>
+
+  <!-- how it works -->
+  <section class="reveal" style="animation-delay:.1s">
+    <div class="eyebrow"><span class="n">02</span> How it works</div>
+    <h2>Four moves, one growing index</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="step">STEP 01</div>
+        <h3>Start it <code>/codex:init</code></h3>
+        <p>Scaffolds a codex at user scope (<code>~/.claude/codex</code>) or per project. Just markdown: an <code>INDEX.md</code> and an <code>entries/</code> folder.</p>
+      </div>
+      <div class="card">
+        <div class="step">STEP 02</div>
+        <h3>Capture it <code>/codex:remember</code></h3>
+        <p>Distills a decision, gotcha, preference or reference into one atomic entry file and adds a one-line pointer to the index. Dedupes against what is already there.</p>
+      </div>
+      <div class="card">
+        <div class="step">STEP 03</div>
+        <h3>Recall it <code>/codex:recall</code></h3>
+        <p>Reads the index, opens the relevant entries, and answers grounded in them with citations, so past you can inform present you.</p>
+      </div>
+      <div class="card">
+        <div class="step">STEP 04</div>
+        <h3>Auto-load <span style="font-style:italic;font-family:Newsreader,serif">every session</span></h3>
+        <p>A SessionStart hook injects your index into context the moment a session opens. Claude starts aware of what it already knows.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- anatomy -->
+  <section class="reveal" style="animation-delay:.14s">
+    <div class="eyebrow"><span class="n">03</span> Anatomy of an entry</div>
+    <h2>One fact, one file</h2>
+    <div class="anatomy">
+      <div class="filecard">
+        <div class="bar"><span class="dot" style="background:var(--vermilion)"></span> entries/use-pgx-not-orm.md</div>
+        <pre><span class="fm">---</span>
+<span class="key">title:</span> <span class="val">Use pgx + sqlc, not a heavy ORM, in Go services</span>
+<span class="key">slug:</span> <span class="val">use-pgx-not-orm</span>
+<span class="key">type:</span> <span class="val">decision</span>
+<span class="key">created:</span> <span class="val">2026-06-13</span>
+<span class="key">tags:</span> <span class="val">[go, postgres, data-layer]</span>
+<span class="fm">---</span>
+
+We standardised on pgx for the driver and sqlc to generate
+type-safe query code from plain SQL. GORM was rejected for
+hiding query cost behind reflection.
+
+<span class="key">**Why it matters:**</span> reach for this on any new Go service;
+do not reintroduce a runtime ORM.
+<span class="key">**Related:**</span> [[deploy-single-binary]]</pre>
+      </div>
+      <div class="filecard">
+        <div class="bar"><span class="dot" style="background:var(--teal)"></span> INDEX.md</div>
+        <pre><span class="fm"># Codex Index</span>
+
+- [Use pgx + sqlc, not a heavy ORM](entries/use-pgx-not-orm.md) - Go data-layer decision
+- [Deploy as a single static binary](entries/deploy-single-binary.md) - ops convention
+- [Staging DB mirrors prod nightly](entries/staging-db-mirror.md) - gotcha, do not seed</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- commands -->
+  <section class="reveal" style="animation-delay:.18s">
+    <div class="eyebrow"><span class="n">04</span> Commands</div>
+    <h2>The whole surface</h2>
+    <table>
+      <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>/codex:init</code></td><td>Create the codex (user or project scope).</td></tr>
+        <tr><td><code>/codex:remember</code></td><td>Capture a durable learning as a new entry.</td></tr>
+        <tr><td><code>/codex:recall</code></td><td>Search the codex and answer from it.</td></tr>
+        <tr><td><code>SessionStart hook</code></td><td>Loads the index into context automatically each session.</td></tr>
+      </tbody>
+    </table>
+    <p class="note">
+      The skills also auto-trigger on intent: say "remember this in my codex" or "what do I know about
+      X" and the right skill fires without typing the command.
+    </p>
+  </section>
+
+  <!-- footer -->
+  <footer class="reveal" style="animation-delay:.22s">
+    <p class="stamp">Built by <b>anishfyi</b>.</p>
+    <p class="madeby">
+      Backed by a written
+      <a href="PRD.md">Product Requirements Doc</a> and an
+      <a href="ENGINEERING.md">Engineering Design Doc</a>, both authored by anishfyi.
+    </p>
+    <div class="foot-links">
+      <a class="pill" href="https://github.com/anishfyi/claude-codex"><span class="ic">&#9733;</span> github.com/anishfyi/claude-codex</a>
+      <a class="pill" href="PRD.md"><span class="ic">&#167;</span> PRD</a>
+      <a class="pill" href="ENGINEERING.md"><span class="ic">&#167;</span> Engineering Doc</a>
+    </div>
+  </footer>
+
+</div>
+
+<style>[x-cloak]{ display:none !important; }</style>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script>
+  function codexsite(){
+    return {
+      tab: 'plugin',
+      copied: null,
+      plugins: "/plugin marketplace add anishfyi/claude-codex\n/plugin install codex@anishfyi-codex",
+      manual: "git clone https://github.com/anishfyi/claude-codex /tmp/claude-codex\ncp -r /tmp/claude-codex/plugins/codex/skills/* ~/.claude/skills/",
+      copy(id, text){
+        navigator.clipboard.writeText(text).then(() => {
+          this.copied = id;
+          setTimeout(() => { if(this.copied === id) this.copied = null; }, 1400);
+        });
+      },
+    };
+  }
+</script>
+</body>
+</html>
