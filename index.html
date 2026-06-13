@@ -104,17 +104,12 @@
 
   /* ───────────────── memory garden (small square) ───────────────── */
   .hero-garden{ justify-self:center; width:100%; max-width:230px; }
-  .garden{ position:relative; width:100%; max-width:230px; aspect-ratio:1 / 1; margin:0 auto;
-    display:flex; flex-direction:column; background:
-      radial-gradient(120% 70% at 50% 22%, rgba(123,185,138,.16), transparent 60%),
-      linear-gradient(180deg, #fbf7ee, var(--paper-2));
-    border:1px solid var(--line); border-radius:16px; padding:12px 14px;
-    box-shadow:0 16px 40px -26px rgba(28,34,48,.45); }
-  .garden svg{ display:block; width:46%; max-width:96px; height:auto; margin:0 auto; }
-  .shelf{ height:6px; margin:2px 6px 0; border-radius:0 0 8px 8px;
-    background:linear-gradient(180deg, var(--line-2), transparent); }
+  /* no card: the plant sits directly on the page */
+  .garden{ position:relative; width:100%; max-width:230px; margin:0 auto;
+    display:flex; flex-direction:column; }
+  .garden svg{ display:block; width:46%; max-width:100px; height:auto; margin:0 auto; }
 
-  .controls{ margin-top:auto; }
+  .controls{ margin-top:16px; }
   .grow-btn{ width:100%; justify-content:center; font-family:"IBM Plex Mono", monospace;
     font-size:11.5px; letter-spacing:.02em; background:var(--vermilion); color:#fff; border:none;
     border-radius:9px; padding:9px 12px; cursor:pointer; display:inline-flex; align-items:center;
@@ -314,7 +309,6 @@
             <rect x="59" y="154" width="82" height="3.5" rx="2" fill="#cf7048"/>
           </g>
         </svg>
-        <div class="shelf"></div>
 
         <div class="controls">
           <button class="grow-btn" @click="remember()"><span class="plus">+</span> remember a fact</button>
