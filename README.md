@@ -108,16 +108,19 @@ the difference between a pile of files and a memory you can actually use.
 
 ## What the trove looks like
 
+Each entry is one file. Claude picks the format by the shape of the content: **Markdown** for prose,
+**JSON** for structured data. The index lists both, side by side.
+
 ```
 ~/.claude/trove/
 ├── INDEX.md                 # one line per entry, newest first
 └── entries/
-    ├── use-pgx-not-orm.md
-    ├── deploy-single-binary.md
+    ├── use-pgx-not-orm.md   # prose      -> Markdown
+    ├── service-ports.json   # structured -> JSON
     └── staging-db-mirror.md
 ```
 
-An entry:
+A **Markdown** entry (prose: decisions, gotchas, conventions):
 
 ```markdown
 ---
@@ -135,7 +138,22 @@ from plain SQL. GORM was rejected for hiding query cost behind reflection.
 **Related:** [[deploy-single-binary]]
 ```
 
-Entry `type` is one of: `decision`, `gotcha`, `preference`, `reference`, `project`, `snippet`.
+A **JSON** entry (structured context: mappings, lists, config, schemas, the payload lives under `data`):
+
+```json
+{
+  "title": "Local service ports",
+  "slug": "service-ports",
+  "type": "reference",
+  "created": "2026-06-14",
+  "tags": ["infra", "ports"],
+  "summary": "which service runs on which port",
+  "data": { "web": 8000, "trove-ui": 8010, "partners": 8011 }
+}
+```
+
+Both carry the same top-level fields (`title`, `slug`, `type`, `created`, `tags`). Entry `type` is one
+of: `decision`, `gotcha`, `preference`, `reference`, `project`, `snippet`.
 
 ---
 

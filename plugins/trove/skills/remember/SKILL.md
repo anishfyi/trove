@@ -22,7 +22,17 @@ Persist one durable, atomic fact into the trove. One file per fact, indexed in `
 3. **Dedupe.** Read `INDEX.md`. If an existing entry already covers this, **update that file** instead
    of creating a near-duplicate. Delete entries that have become wrong.
 
-4. **Write the entry** at `entries/<slug>.md` using the canonical format:
+4. **Choose the format, then write the entry.** Two formats are supported; you decide by the *shape*
+   of the content, every time:
+   - **Markdown** (`entries/<slug>.md`) when the content is prose: a decision and its rationale, a
+     gotcha, a convention, any narrative worth a paragraph or two.
+   - **JSON** (`entries/<slug>.json`) when the content is *structured data*: a mapping, a list of
+     records, a config snapshot, an API/endpoint table, a schema, anything where the structure is the
+     point and prose would only get in the way.
+
+   When in doubt, prefer Markdown. Both formats carry the same top-level fields so every skill agrees.
+
+   **Markdown template:**
 
    ```markdown
    ---
@@ -39,8 +49,23 @@ Persist one durable, atomic fact into the trove. One file per fact, indexed in `
    **Related:** [[other-slug]]    # link related entries; a not-yet-written slug is fine
    ```
 
+   **JSON template** (put the structured payload under `data`):
+
+   ```json
+   {
+     "title": "<Human readable title>",
+     "slug": "<kebab-case-slug>",
+     "type": "reference | snippet | project | decision | gotcha | preference",
+     "created": "<YYYY-MM-DD>",
+     "tags": ["tag1", "tag2"],
+     "summary": "<one-line hook for the index>",
+     "data": { "...": "the structured payload, any shape" }
+   }
+   ```
+
 5. **Update the index.** Add a one-line bullet at the **top** of the entry list in `INDEX.md`
-   (newest first), or refresh the existing line if you updated an entry:
+   (newest first), pointing at the file you wrote (`.md` or `.json`), or refresh the existing line if
+   you updated an entry:
 
    ```markdown
    - [<Title>](entries/<slug>.md) - <one-line hook>

@@ -8,7 +8,8 @@ argument-hint: "[--user|--project]"
 # Initialize a Trove
 
 A **Trove** is a personal, file-based knowledge index that grows as you use Claude Code. It is just
-markdown on disk, so it is portable, greppable, diffable, and yours. This skill creates it.
+plain files on disk (Markdown for prose, JSON for structured data), so it is portable, greppable,
+diffable, and yours. This skill creates it.
 
 ## Steps
 
@@ -43,7 +44,10 @@ markdown on disk, so it is portable, greppable, diffable, and yours. This skill 
 
 ## The entry format (so every skill agrees)
 
-Each fact lives in its own file `entries/<slug>.md`:
+Each fact is its own file in `entries/`, in **one of two formats**. The remember skill chooses by
+the shape of the content: Markdown for prose, JSON for structured data.
+
+**Markdown** `entries/<slug>.md` for prose: decisions, gotchas, conventions, narrative notes.
 
 ```markdown
 ---
@@ -60,10 +64,26 @@ tags: [tag1, tag2]
 **Related:** [[other-slug]]
 ```
 
-And the matching one-line entry in `INDEX.md`:
+**JSON** `entries/<slug>.json` for structured context: mappings, lists of records, config, schemas.
+
+```json
+{
+  "title": "<Human readable title>",
+  "slug": "<kebab-case-slug>",
+  "type": "reference | snippet | project | decision | gotcha | preference",
+  "created": "<YYYY-MM-DD>",
+  "tags": ["tag1", "tag2"],
+  "summary": "<one-line hook for the index>",
+  "data": { "...": "the structured payload, any shape" }
+}
+```
+
+Either way, add the matching one-line entry to `INDEX.md`. The file extension tells readers (and the
+session hook) which format it is:
 
 ```markdown
 - [<Title>](entries/<slug>.md) - <one-line hook>
+- [<Title>](entries/<slug>.json) - <one-line hook>
 ```
 
-Do not overbuild. The trove is plain markdown; keep it simple, atomic, and honest.
+Do not overbuild. Keep entries simple, atomic, and honest.
