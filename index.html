@@ -85,7 +85,7 @@
   section.sec.seen{ opacity:1; transform:none; }
 
   /* ───────────────── hero ───────────────── */
-  .hero{ display:block; padding:64px 0 50px; border-bottom:2px solid var(--ink); }
+  .hero{ display:block; padding:76px 0 50px; border-bottom:2px solid var(--ink); }
 
   .kicker{ display:flex; align-items:center; gap:13px; font-family:"IBM Plex Mono", monospace;
     font-size:11px; letter-spacing:.32em; text-transform:uppercase; color:var(--vermilion); }
@@ -114,11 +114,13 @@
   .btn-ghost:hover{ color:var(--ink); border-color:var(--ink-faint); text-decoration:none; }
 
   /* sticky top nav */
-  .topbar{ position:sticky; top:0; z-index:100; background:rgba(245,240,230,.82);
-    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+  .topbar{ position:sticky; top:0; z-index:100; background:rgba(247,243,234,.5);
+    backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);
+    border-bottom:1px solid rgba(255,255,255,.45);
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset, 0 8px 26px -18px rgba(28,34,48,.3); }
   .topbar-in{ max-width:1080px; margin:0 auto; padding:11px 30px; display:flex; align-items:center; justify-content:space-between; }
   .tb-brand{ display:flex; align-items:center; gap:9px; font-family:"Fraunces", serif; font-weight:600; font-size:1.18rem; color:var(--ink); }
-  .tb-brand img{ width:22px; height:22px; }
+  .tb-brand img{ width:27px; height:27px; }
   .tb-brand:hover{ text-decoration:none; }
   .tb-links{ display:flex; align-items:center; gap:22px; font-family:"IBM Plex Mono", monospace; font-size:12px; }
   .tb-links a{ color:var(--ink-soft); }
@@ -287,7 +289,7 @@
 
 <nav class="topbar">
   <div class="topbar-in">
-    <a class="tb-brand" href="#top"><img src="logo.svg" alt="" /> Trove</a>
+    <a class="tb-brand" href="#top" aria-label="Trove home"><img src="logo.svg" alt="Trove" /></a>
     <div class="tb-links">
       <a href="#install">Install</a>
       <a href="#why">Why</a>
@@ -301,11 +303,6 @@
   <!-- ───────── hero ───────── -->
   <header class="hero" id="top">
     <div class="hero-copy reveal">
-      <div class="kicker">
-        <img class="logo-mark" src="logo.svg" alt="Trove logo" />
-        <span>Trove</span><span class="sep">·</span><span class="who">A Claude Code skill</span>
-        <span class="rule"></span>
-      </div>
       <h1 class="wordmark">Trove<span class="seed">.</span></h1>
       <p class="lede">A memory index that grows as you use Claude Code.</p>
       <p class="sub">
