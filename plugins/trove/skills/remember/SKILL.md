@@ -1,20 +1,20 @@
 ---
 name: remember
-description: Capture a durable learning into the personal Codex. Use when the user says remember this, note this, save to codex, add to my codex, or when a session surfaces a decision, gotcha, convention/preference, or external reference worth keeping. Writes one atomic entry file and updates INDEX.md.
+description: Capture a durable learning into the personal Trove. Use when the user says remember this, note this, save to trove, add to my trove, or when a session surfaces a decision, gotcha, convention/preference, or external reference worth keeping. Writes one atomic entry file and updates INDEX.md.
 allowed-tools: Bash, Read, Write, Edit
 argument-hint: "[the thing to remember]"
 ---
 
-# Remember (capture into the Codex)
+# Remember (capture into the Trove)
 
-Persist one durable, atomic fact into the codex. One file per fact, indexed in `INDEX.md`.
+Persist one durable, atomic fact into the trove. One file per fact, indexed in `INDEX.md`.
 
 ## Steps
 
-1. **Resolve the codex directory.** Prefer a project codex if present, else the user codex:
-   - If `./.claude/codex/INDEX.md` exists, use `./.claude/codex`.
-   - Else if `~/.claude/codex/INDEX.md` exists, use `~/.claude/codex`.
-   - Else there is no codex yet: run the **/codex:init** skill first (or offer to), then continue.
+1. **Resolve the trove directory.** Prefer a project trove if present, else the user trove:
+   - If `./.claude/trove/INDEX.md` exists, use `./.claude/trove`.
+   - Else if `~/.claude/trove/INDEX.md` exists, use `~/.claude/trove`.
+   - Else there is no trove yet: run the **/trove:init** skill first (or offer to), then continue.
 
 2. **Distill to one atomic fact.** Compress the thing worth remembering into a single, self-contained
    entry. If the user hands you several things, write several entries.

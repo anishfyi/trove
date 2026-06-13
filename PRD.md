@@ -1,4 +1,4 @@
-# Codex - Product Requirements Document
+# Trove - Product Requirements Document
 
 **Author:** anishfyi
 **Status:** v0.1 (shipped)
@@ -19,14 +19,14 @@ shape, own, and carry between machines. There is no simple, portable, user-owned
 
 ## 2. Goal
 
-Give anyone who uses Claude Code a **personal knowledge codex** that:
+Give anyone who uses Claude Code a **personal knowledge trove** that:
 
 - captures durable learnings with a single command (or naturally, by intent),
 - stores each fact as plain, portable markdown the user fully owns,
 - and reloads automatically at the start of every session so nothing is forgotten.
 
 Success looks like: a user installs the plugin, says "remember this," and weeks later Claude answers
-a question correctly because it loaded their codex without being asked.
+a question correctly because it loaded their trove without being asked.
 
 ## 3. Non-goals
 
@@ -37,14 +37,14 @@ a question correctly because it loaded their codex without being asked.
 
 ## 4. Users
 
-- **Solo builders** who want continuity across many small projects (user-scope codex).
-- **Teams** who want a shared, committed knowledge base that travels with a repo (project-scope codex).
+- **Solo builders** who want continuity across many small projects (user-scope trove).
+- **Teams** who want a shared, committed knowledge base that travels with a repo (project-scope trove).
 - **Power users** who already keep notes and want Claude to actually read and write them.
 
 ## 5. Requirements
 
 ### Must have (v0.1)
-1. **Init**: create a codex at user scope (`~/.claude/codex`) or project scope (`./.claude/codex`).
+1. **Init**: create a trove at user scope (`~/.claude/trove`) or project scope (`./.claude/trove`).
 2. **Remember**: distill a learning into one atomic entry file with frontmatter, dedupe against
    existing entries, and update a human-readable `INDEX.md`.
 3. **Recall**: search the index and entries, answer grounded in them, and cite sources.
@@ -54,7 +54,7 @@ a question correctly because it loaded their codex without being asked.
 
 ### Should have
 - Intent-based auto-trigger (no need to memorize command names).
-- A tiny CLI helper (`codex.sh`) for mechanical operations and non-plugin users.
+- A tiny CLI helper (`trove.sh`) for mechanical operations and non-plugin users.
 - Clear guidance on what is worth remembering vs. what to skip (secrets, transient state).
 
 ### Could have (later)
@@ -82,14 +82,14 @@ you taught it, with no action from the user.
 
 ## 8. Success metrics
 
-- A user can install and create a codex in under two minutes.
+- A user can install and create a trove in under two minutes.
 - Recall answers cite real entries, not hallucinations.
 - Returning to a project after weeks, the relevant context is present without re-pasting.
 
 ## 9. Risks
 
 - **Over-capture** dilutes signal. Mitigated by explicit "what to skip" guidance in the skills.
-- **Secrets leakage** into a committed project codex. Mitigated by an explicit "never save secrets"
+- **Secrets leakage** into a committed project trove. Mitigated by an explicit "never save secrets"
   rule in the remember skill.
 - **Staleness.** Mitigated by recall flagging old entries and references to files that no longer exist.
 

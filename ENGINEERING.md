@@ -1,4 +1,4 @@
-# Codex - Engineering Design Document
+# Trove - Engineering Design Document
 
 **Author:** anishfyi
 **Status:** v0.1 (shipped)
@@ -9,7 +9,7 @@
 
 ## 1. Overview
 
-Codex is a Claude Code **plugin** distributed through a **marketplace** in a public GitHub repo. It
+Trove is a Claude Code **plugin** distributed through a **marketplace** in a public GitHub repo. It
 contributes three **skills** (`init`, `remember`, `recall`) and one **SessionStart hook**. There is
 no runtime service: state is plain markdown on the user's disk. The "intelligence" lives in the skill
 instructions that Claude follows; the plugin is the delivery and lifecycle mechanism.
@@ -21,40 +21,40 @@ instructions that Claude follows; the plugin is the delivery and lifecycle mecha
   GitHub repo  ───────────────────────────▶  Claude Code
   (this repo)                                   │
                                                 ├─ skills/  init · remember · recall
-                                                └─ hooks/   SessionStart -> load-codex.sh
+                                                └─ hooks/   SessionStart -> load-trove.sh
                                                                  │
                                                                  ▼
-                                  ~/.claude/codex/        (or ./.claude/codex)
+                                  ~/.claude/trove/        (or ./.claude/trove)
                                     ├─ INDEX.md           one line per entry
                                     └─ entries/*.md       one fact per file
 ```
 
-Data flows one way at session start (codex -> context via the hook) and on demand during a session
-(user intent -> skill -> read/write codex).
+Data flows one way at session start (trove -> context via the hook) and on demand during a session
+(user intent -> skill -> read/write trove).
 
 ## 3. Repository and plugin layout
 
 ```
-claude-codex/
-├── .claude-plugin/marketplace.json     # marketplace "anishfyi-codex", lists the plugin
-└── plugins/codex/
-    ├── .claude-plugin/plugin.json      # plugin identity, kebab-case name "codex"
+trove/
+├── .claude-plugin/marketplace.json     # marketplace "anishfyi-trove", lists the plugin
+└── plugins/trove/
+    ├── .claude-plugin/plugin.json      # plugin identity, kebab-case name "trove"
     ├── skills/{init,remember,recall}/SKILL.md
     ├── hooks/hooks.json                # SessionStart matcher startup|resume
-    └── scripts/{load-codex.sh,codex.sh}
+    └── scripts/{load-trove.sh,trove.sh}
 ```
 
-Plugin skills are namespaced by the plugin name, so the commands are `/codex:init`,
-`/codex:remember`, `/codex:recall`. The marketplace name is referenced at install time:
-`/plugin install codex@anishfyi-codex`.
+Plugin skills are namespaced by the plugin name, so the commands are `/trove:init`,
+`/trove:remember`, `/trove:recall`. The marketplace name is referenced at install time:
+`/plugin install trove@anishfyi-trove`.
 
 ## 4. Storage format
 
 ### Location resolution
-- **Project scope** `./.claude/codex` wins if it has an `INDEX.md` (more specific, travels with repo).
-- **User scope** `~/.claude/codex` is the default and fallback (follows the user everywhere).
+- **Project scope** `./.claude/trove` wins if it has an `INDEX.md` (more specific, travels with repo).
+- **User scope** `~/.claude/trove` is the default and fallback (follows the user everywhere).
 
-This single rule is implemented identically in `codex.sh`, `load-codex.sh`, and stated in every
+This single rule is implemented identically in `trove.sh`, `load-trove.sh`, and stated in every
 SKILL.md so all paths agree.
 
 ### INDEX.md
@@ -73,12 +73,12 @@ small context cost when only the index is loaded by default.
 ## 5. The SessionStart hook
 
 `hooks/hooks.json` registers a `command` hook on `SessionStart` (matcher `startup|resume`) that runs
-`load-codex.sh` via `${CLAUDE_PLUGIN_ROOT}`. The script:
+`load-trove.sh` via `${CLAUDE_PLUGIN_ROOT}`. The script:
 
 - is **read-only** and **defensive**: it never fails a session (no `set -e`, guards every read,
   always `exit 0`),
 - emits a short instruction line plus the project and/or user `INDEX.md`,
-- prints nothing if no codex exists yet (zero noise for users who have not run `init`).
+- prints nothing if no trove exists yet (zero noise for users who have not run `init`).
 
 Only the compact index is auto-loaded, never every entry, to keep the per-session context cost low.
 Full entries are pulled on demand by the recall skill.
@@ -89,10 +89,10 @@ Skills are markdown instructions, not code. Each declares `allowed-tools` to sco
 
 - **init** (`Bash, Read, Write, Edit`): choose scope, scaffold the directory and `INDEX.md`, print the
   canonical entry format so the other skills inherit one contract.
-- **remember** (`Bash, Read, Write, Edit`): resolve the codex, distill to one atomic fact, dedupe
+- **remember** (`Bash, Read, Write, Edit`): resolve the trove, distill to one atomic fact, dedupe
   against the index, write the entry, update the index newest-first, confirm with the path. Carries
   the "what to save vs skip" policy, including the hard "never store secrets" rule.
-- **recall** (`Bash, Read, Grep`): resolve the codex, scan the index, grep entries, open the matches,
+- **recall** (`Bash, Read, Grep`): resolve the trove, scan the index, grep entries, open the matches,
   answer grounded with citations, flag staleness, and offer to remember on a miss. Intentionally has
   no write tools.
 
@@ -101,18 +101,18 @@ Descriptions are written keyword-first so Claude auto-triggers the right skill o
 
 ## 7. The CLI helper
 
-`codex.sh` is a dependency-free bash helper (`path`, `init`, `list`, `grep`) for mechanical work and
+`trove.sh` is a dependency-free bash helper (`path`, `init`, `list`, `grep`) for mechanical work and
 for users who installed skills manually without the plugin. The skills can lean on it but do not
 require it; they can also operate the filesystem directly, so the system degrades gracefully if the
 env var or script path is unavailable.
 
 ## 8. Distribution and versioning
 
-- `marketplace.json` (`name: anishfyi-codex`) catalogs the single plugin with a relative
-  `source: ./plugins/codex`.
+- `marketplace.json` (`name: anishfyi-trove`) catalogs the single plugin with a relative
+  `source: ./plugins/trove`.
 - `plugin.json` carries identity and `version: 0.1.0`.
-- Users add the marketplace with `/plugin marketplace add anishfyi/claude-codex` and install with
-  `/plugin install codex@anishfyi-codex`. `claude plugin validate` is used in CI/manual checks before
+- Users add the marketplace with `/plugin marketplace add anishfyi/trove` and install with
+  `/plugin install trove@anishfyi-trove`. `claude plugin validate` is used in CI/manual checks before
   publishing.
 
 ## 9. Security and privacy
@@ -125,16 +125,16 @@ env var or script path is unavailable.
 
 ## 10. Testing and validation
 
-- `claude plugin validate ./plugins/codex` and `claude plugin validate .` for schema correctness.
+- `claude plugin validate ./plugins/trove` and `claude plugin validate .` for schema correctness.
 - Manual lifecycle test: init -> remember (twice, including a dedupe) -> recall -> open a new session
   and confirm the hook injects the index.
-- `load-codex.sh` is verified to print nothing and exit 0 when no codex exists.
+- `load-trove.sh` is verified to print nothing and exit 0 when no trove exists.
 
 ## 11. Future work
 
 - `prune` / `review` skills for retiring stale entries.
 - An opt-in session-end capture hook that proposes entries from the transcript.
-- `export` / `import` to move a codex between machines as one bundle.
+- `export` / `import` to move a trove between machines as one bundle.
 - Recall ranking by tag/type and recency.
 
 ## 12. Trade-offs

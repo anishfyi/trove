@@ -1,16 +1,16 @@
 {
-  "name": "anishfyi-codex",
+  "name": "anishfyi-trove",
   "owner": {
     "name": "anishfyi"
   },
-  "description": "A personal knowledge codex for Claude Code, by anishfyi. Capture durable learnings as you work and reload them every session.",
+  "description": "A personal knowledge trove for Claude Code, by anishfyi. Capture durable learnings as you work and reload them every session.",
   "plugins": [
     {
-      "name": "codex",
-      "source": "./plugins/codex",
-      "description": "Build and maintain a personal, file-based codex of decisions, gotchas, preferences and references. Auto-loads each session via a SessionStart hook.",
+      "name": "trove",
+      "source": "./plugins/trove",
+      "description": "Build and maintain a personal, file-based trove of decisions, gotchas, preferences and references. Auto-loads each session via a SessionStart hook.",
       "category": "productivity",
-      "keywords": ["memory", "codex", "knowledge", "notes"],
+      "keywords": ["memory", "trove", "knowledge", "notes"],
       "license": "MIT"
     }
   ]

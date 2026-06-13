@@ -1,11 +1,11 @@
-# Codex - a personal memory index for Claude Code
+# Trove - a personal memory index for Claude Code
 
-**Install once, and Claude Code keeps a personal, file-based codex of your decisions, gotchas,
+**Install once, and Claude Code keeps a personal, file-based trove of your decisions, gotchas,
 conventions and references as you work, and reloads it into context at the start of every session.**
 
-Live page: **https://anishfyi.github.io/claude-codex/**
+Live page: **https://anishfyi.github.io/trove/**
 
-Every fact is one markdown file with frontmatter. The codex is portable, greppable, diffable, and
+Every fact is one markdown file with frontmatter. The trove is portable, greppable, diffable, and
 yours. No database, no service, no lock-in.
 
 ---
@@ -17,22 +17,22 @@ yours. No database, no service, no lock-in.
 Run these inside Claude Code:
 
 ```
-/plugin marketplace add anishfyi/claude-codex
-/plugin install codex@anishfyi-codex
+/plugin marketplace add anishfyi/trove
+/plugin install trove@anishfyi-trove
 ```
 
-The first command registers this repo as a plugin marketplace; the second installs the `codex`
-plugin, which provides three skills and a SessionStart hook. Then create your codex once:
+The first command registers this repo as a plugin marketplace; the second installs the `trove`
+plugin, which provides three skills and a SessionStart hook. Then create your trove once:
 
 ```
-/codex:init
+/trove:init
 ```
 
 ### Manual (skills only, no auto-load hook)
 
 ```bash
-git clone https://github.com/anishfyi/claude-codex /tmp/claude-codex
-cp -r /tmp/claude-codex/plugins/codex/skills/* ~/.claude/skills/
+git clone https://github.com/anishfyi/trove /tmp/trove
+cp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/
 ```
 
 This gives you `/init`, `/remember`, and `/recall`. The automatic session-load hook ships only with
@@ -44,20 +44,20 @@ the plugin install above.
 
 | Command | What it does |
 |---------|--------------|
-| `/codex:init` | Create the codex at user scope (`~/.claude/codex`) or project scope (`./.claude/codex`). |
-| `/codex:remember` | Distill a durable learning into one atomic entry and add it to the index. |
-| `/codex:recall` | Search the codex and answer grounded in the relevant entries. |
+| `/trove:init` | Create the trove at user scope (`~/.claude/trove`) or project scope (`./.claude/trove`). |
+| `/trove:remember` | Distill a durable learning into one atomic entry and add it to the index. |
+| `/trove:recall` | Search the trove and answer grounded in the relevant entries. |
 
-The skills also auto-trigger on intent: say "remember this in my codex" or "what do I know about X"
+The skills also auto-trigger on intent: say "remember this in my trove" or "what do I know about X"
 and the right skill fires without typing the command. Every new session, the SessionStart hook loads
 your `INDEX.md` into context so Claude starts aware of what it already knows.
 
 ---
 
-## What the codex looks like
+## What the trove looks like
 
 ```
-~/.claude/codex/
+~/.claude/trove/
 ├── INDEX.md                 # one line per entry, newest first
 └── entries/
     ├── use-pgx-not-orm.md
@@ -101,11 +101,11 @@ git history. If a fact is one of those, capture what was *non-obvious* about it 
 ## Repository layout
 
 ```
-claude-codex/
+trove/
 ├── .claude-plugin/
-│   └── marketplace.json          # lists the codex plugin
+│   └── marketplace.json          # lists the trove plugin
 ├── plugins/
-│   └── codex/
+│   └── trove/
 │       ├── .claude-plugin/
 │       │   └── plugin.json
 │       ├── skills/
@@ -115,8 +115,8 @@ claude-codex/
 │       ├── hooks/
 │       │   └── hooks.json         # SessionStart: load the index
 │       └── scripts/
-│           ├── load-codex.sh      # hook body (read-only, defensive)
-│           └── codex.sh           # tiny CLI helper (path/init/list/grep)
+│           ├── load-trove.sh      # hook body (read-only, defensive)
+│           └── trove.sh           # tiny CLI helper (path/init/list/grep)
 ├── index.html                     # AlpineJS landing page
 ├── PRD.md                         # product requirements
 ├── ENGINEERING.md                 # engineering design
