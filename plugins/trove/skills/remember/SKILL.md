@@ -82,3 +82,4 @@ are not obvious from the code.
 **Do not save:** secrets or credentials, transient task state that only matters to this conversation,
 or facts trivially re-derivable from the codebase, git history, or existing docs. If asked to remember
 one of those, capture instead what was *non-obvious* about it.
+

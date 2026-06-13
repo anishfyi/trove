@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="Trove">
+  <path d="M6 14h12l-1.6 7H7.6z" fill="#c0613a"/>
+  <rect x="5" y="12.4" width="14" height="2.7" rx="1" fill="#d2724a"/>
+  <path d="M12 13V6" stroke="#2f6f6a" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M12 9C9 9 7.4 7.1 7.4 7.1 10 6.6 12 8 12 9Z" fill="#5b9c6a"/>
+  <path d="M12 8c3 0 4.6-1.9 4.6-1.9C14 5.5 12 7 12 8Z" fill="#7cb98a"/>
+  <circle cx="12" cy="5" r="1.8" fill="#d83a22"/>
+</svg>

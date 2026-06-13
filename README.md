@@ -1,3 +1,5 @@
+<p align="center"><img src="logo.svg" alt="Trove" width="88" height="88"></p>
+
 # Trove - a personal memory index for Claude Code
 
 **Install once, and Claude Code keeps a personal, file-based trove of your decisions, gotchas,

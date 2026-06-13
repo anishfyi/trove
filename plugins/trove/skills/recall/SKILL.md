@@ -31,3 +31,4 @@ Answer a question using what is stored in the trove, grounded in the actual entr
 
 Recalled entries reflect what was true when written. If an entry names a file, flag, or command,
 verify it still exists before recommending it.
+
