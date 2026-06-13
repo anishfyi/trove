@@ -5,21 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Trove - a personal memory index for Claude Code</title>
 <meta name="description" content="A Claude Code skill that builds and maintains a personal, file-based knowledge trove as you work, and reloads it every session." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 14h12l-1.6 7H7.6z' fill='%23c0613a'/%3E%3Crect x='5' y='12.4' width='14' height='2.7' rx='1' fill='%23d2724a'/%3E%3Cpath d='M12 13V6' stroke='%232f6f6a' stroke-width='1.7' stroke-linecap='round'/%3E%3Cpath d='M12 9C9 9 7.4 7.1 7.4 7.1 10 6.6 12 8 12 9Z' fill='%235b9c6a'/%3E%3Cpath d='M12 8c3 0 4.6-1.9 4.6-1.9C14 5.5 12 7 12 8Z' fill='%237cb98a'/%3E%3Ccircle cx='12' cy='5' r='1.8' fill='%23d83a22'/%3E%3C/svg%3E" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
 <style>
   :root{
-    --paper:    #f5f0e6;   /* warm cream                */
-    --paper-2:  #efe8d9;   /* card                      */
-    --paper-3:  #e7ddca;   /* raised / rule             */
-    --ink:      #1c2230;   /* primary text (ink navy)   */
-    --ink-soft: #4a5263;   /* secondary text            */
-    --ink-faint:#8a8676;   /* tertiary / labels         */
-    --vermilion:#d83a22;   /* primary accent (stamp)    */
-    --teal:     #2f6f6a;   /* secondary accent          */
+    --paper:    #f5f0e6;
+    --paper-2:  #efe8d9;
+    --paper-3:  #e7ddca;
+    --ink:      #1c2230;
+    --ink-soft: #4a5263;
+    --ink-faint:#8a8676;
+    --vermilion:#d83a22;
+    --teal:     #2f6f6a;
+    --gold:     #c79a3a;
+    --blue:     #3f6fa6;
+    --leaf:     #5b9c6a;
+    --leaf-2:   #7cb98a;
+    --soil:     #6f4a30;
+    --pot:      #c0613a;
+    --pot-2:    #a8502e;
     --line:     #d8cdb6;
     --line-2:   #cbbfa4;
   }
@@ -31,131 +39,279 @@
     font-family:"IBM Plex Sans", sans-serif;
     line-height:1.6;
     -webkit-font-smoothing:antialiased;
-    /* faint index-card ruling */
+    overflow-x:hidden;
     background-image:
-      linear-gradient(to bottom, rgba(0,0,0,0) 0, rgba(0,0,0,0) 33px, rgba(47,111,106,.06) 34px),
-      radial-gradient(120% 90% at 50% -10%, #fbf7ee 0%, var(--paper) 60%);
+      linear-gradient(to bottom, rgba(0,0,0,0) 0, rgba(0,0,0,0) 33px, rgba(47,111,106,.05) 34px),
+      radial-gradient(130% 90% at 78% -8%, #fcf8ef 0%, var(--paper) 58%);
     background-size:100% 34px, 100% 100%;
   }
   ::selection{ background:var(--vermilion); color:var(--paper); }
   a{ color:var(--teal); text-decoration:none; }
   a:hover{ text-decoration:underline; }
+  [x-cloak]{ display:none !important; }
 
-  .wrap{ max-width:880px; margin:0 auto; padding:0 26px; }
+  .wrap{ max-width:1080px; margin:0 auto; padding:0 30px; position:relative; z-index:2; }
 
-  /* ── masthead ── */
-  header.mast{ padding:64px 0 30px; border-bottom:2px solid var(--ink); }
-  .tag{ font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:.34em;
-    text-transform:uppercase; color:var(--vermilion); display:flex; align-items:center; gap:12px; }
-  .tag::after{ content:""; flex:1; height:1px; background:var(--line-2); }
-  h1.logo{ font-family:"Newsreader", serif; font-weight:600; font-size:clamp(3.4rem,11vw,6.5rem);
-    line-height:.92; letter-spacing:-.02em; margin:14px 0 0; }
-  h1.logo .dot{ color:var(--vermilion); }
-  .lede{ font-family:"Newsreader", serif; font-size:clamp(1.2rem,2.6vw,1.6rem); font-style:italic;
-    color:var(--ink-soft); margin-top:16px; max-width:34ch; }
-  .sub{ margin-top:16px; max-width:60ch; color:var(--ink-soft); font-size:1.02rem; }
+  /* drifting seeds in the background */
+  .pollen{ position:fixed; inset:0; pointer-events:none; z-index:1; overflow:hidden; }
+  .pollen i{ position:absolute; bottom:-20px; width:7px; height:7px; border-radius:50% 50% 50% 0;
+    background:var(--leaf-2); opacity:.0; transform:rotate(45deg);
+    animation:drift linear infinite; }
+  .pollen i:nth-child(even){ background:var(--gold); width:5px; height:5px; }
+  .pollen i:nth-child(3n){ background:var(--vermilion); opacity:.5; }
+  @keyframes drift{
+    0%{ transform:translateY(0) rotate(45deg); opacity:0; }
+    12%{ opacity:.55; }
+    88%{ opacity:.4; }
+    100%{ transform:translateY(-108vh) rotate(225deg); opacity:0; }
+  }
+
+  .reveal{ opacity:0; transform:translateY(14px); animation:rise .8s cubic-bezier(.2,.7,.2,1) forwards; }
+  @keyframes rise{ to{ opacity:1; transform:none; } }
+  section.sec{ opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1); }
+  section.sec.seen{ opacity:1; transform:none; }
+
+  /* ───────────────── hero ───────────────── */
+  .hero{ display:grid; grid-template-columns:minmax(0,1.12fr) minmax(290px,.88fr); gap:30px;
+    align-items:center; padding:88px 0 56px; border-bottom:2px solid var(--ink); }
+
+  .kicker{ display:flex; align-items:center; gap:13px; font-family:"IBM Plex Mono", monospace;
+    font-size:11px; letter-spacing:.32em; text-transform:uppercase; color:var(--vermilion); }
+  .kicker .logo-mark{ width:26px; height:26px; flex:none; }
+  .kicker .sep{ color:var(--ink-faint); }
+  .kicker .who{ color:var(--ink-faint); }
+  .kicker .rule{ flex:1; height:1px; background:linear-gradient(90deg, var(--line-2), transparent); }
+
+  .wordmark{ font-family:"Fraunces", serif; font-weight:600; font-optical-sizing:auto;
+    font-size:clamp(4.2rem, 11vw, 7.4rem); line-height:.9; letter-spacing:-.02em;
+    margin:34px 0 0; color:var(--ink); }
+  .wordmark .seed{ color:var(--vermilion); }
+
+  .lede{ font-family:"Newsreader", serif; font-style:italic; font-size:clamp(1.25rem,2.5vw,1.7rem);
+    color:var(--ink-soft); margin-top:24px; max-width:30ch; line-height:1.3; }
+  .sub{ margin-top:20px; max-width:54ch; color:var(--ink-soft); font-size:1.03rem; }
   .sub b{ color:var(--ink); font-weight:600; }
 
-  .reveal{ opacity:0; transform:translateY(12px); animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards; }
-  @keyframes rise{ to{ opacity:1; transform:none; } }
+  .hero-cta{ margin-top:26px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .btn-primary{ font-family:"IBM Plex Mono", monospace; font-size:12.5px; letter-spacing:.04em;
+    background:var(--ink); color:var(--paper); border:none; border-radius:9px; padding:12px 18px;
+    cursor:pointer; transition:transform .14s ease, background .14s ease; text-decoration:none; display:inline-block; }
+  .btn-primary:hover{ transform:translateY(-2px); background:#11161f; text-decoration:none; }
+  .btn-ghost{ font-family:"IBM Plex Mono", monospace; font-size:12.5px; color:var(--ink-soft);
+    border:1px solid var(--line-2); border-radius:9px; padding:12px 16px; text-decoration:none; transition:all .14s ease; }
+  .btn-ghost:hover{ color:var(--ink); border-color:var(--ink-faint); text-decoration:none; }
 
-  /* ── section scaffolding ── */
-  section{ padding:42px 0; border-bottom:1px solid var(--line); }
+  /* ───────────────── memory garden ───────────────── */
+  .garden{ position:relative; background:
+      radial-gradient(120% 80% at 50% 18%, rgba(123,185,138,.14), transparent 62%),
+      linear-gradient(180deg, #fbf7ee, var(--paper-2));
+    border:1px solid var(--line); border-radius:18px; padding:14px 14px 18px;
+    box-shadow:0 22px 50px -28px rgba(28,34,48,.45); }
+  .garden svg{ display:block; width:100%; height:auto; }
+  .shelf{ height:8px; margin:0 8px; border-radius:0 0 8px 8px;
+    background:linear-gradient(180deg, var(--line-2), transparent); }
+
+  .garden-bar{ display:flex; align-items:center; gap:12px; margin-top:12px; flex-wrap:wrap; }
+  .grow-btn{ font-family:"IBM Plex Mono", monospace; font-size:12.5px; letter-spacing:.02em;
+    background:var(--vermilion); color:#fff; border:none; border-radius:9px; padding:11px 15px;
+    cursor:pointer; display:inline-flex; align-items:center; gap:8px; transition:transform .12s ease, box-shadow .2s ease;
+    box-shadow:0 8px 18px -8px rgba(216,58,34,.7); }
+  .grow-btn:hover{ transform:translateY(-2px); }
+  .grow-btn:active{ transform:translateY(0) scale(.97); }
+  .grow-btn .plus{ font-size:15px; line-height:1; }
+  .count{ font-family:"Fraunces", serif; font-size:1.5rem; color:var(--ink); line-height:1; }
+  .count small{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; color:var(--ink-faint);
+    text-transform:uppercase; letter-spacing:.12em; display:block; margin-top:2px; }
+  .reset{ margin-left:auto; font-family:"IBM Plex Mono", monospace; font-size:11px; color:var(--ink-faint);
+    background:none; border:none; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+  .reset:hover{ color:var(--vermilion); }
+  .latest{ margin-top:11px; display:flex; align-items:center; gap:9px; font-size:.9rem; color:var(--ink-soft);
+    min-height:22px; }
+  .latest .swatch{ width:10px; height:10px; border-radius:50% 50% 50% 0; transform:rotate(45deg); flex:none; }
+  .latest .lt{ font-family:"IBM Plex Mono", monospace; font-size:10px; text-transform:uppercase;
+    letter-spacing:.1em; color:var(--ink-faint); }
+  .garden-cap{ margin-top:12px; font-size:.86rem; color:var(--ink-faint); font-style:italic;
+    font-family:"Newsreader", serif; }
+  .overflow-note{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; color:var(--leaf); }
+
+  /* plant pieces */
+  .stem{ fill:none; stroke:var(--leaf); stroke-width:5; stroke-linecap:round;
+    stroke-dasharray:230; stroke-dashoffset:230; animation:draw 1.2s .2s ease forwards; }
+  @keyframes draw{ to{ stroke-dashoffset:0; } }
+  .leaf{ transform-box:fill-box; transform-origin:0% 55%; animation:leafGrow .55s cubic-bezier(.2,.85,.3,1.25) both; }
+  .leaf-vein{ stroke:rgba(0,0,0,.14); stroke-width:1; fill:none; }
+  @keyframes leafGrow{ from{ transform:scale(.04); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .petal{ transform-box:fill-box; transform-origin:50% 100%; animation:bloom .5s cubic-bezier(.2,.85,.3,1.3) both; }
+  @keyframes bloom{ from{ transform:scale(.05); opacity:0; } to{ transform:scale(1); opacity:.95; } }
+  .heart{ animation:pop .4s ease both; }
+  @keyframes pop{ from{ transform:scale(.4); opacity:0; } to{ transform:scale(1); opacity:1; } }
+
+  /* ───────────────── sections ───────────────── */
+  section.sec{ padding:54px 0; border-bottom:1px solid var(--line); }
   .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:.2em;
-    text-transform:uppercase; color:var(--ink-faint); margin-bottom:18px; display:flex; gap:10px; align-items:center; }
+    text-transform:uppercase; color:var(--ink-faint); margin-bottom:20px; display:flex; gap:11px; align-items:center; }
   .eyebrow .n{ color:var(--vermilion); font-weight:600; }
-  h2{ font-family:"Newsreader", serif; font-weight:600; font-size:1.9rem; letter-spacing:-.01em; margin-bottom:6px; }
+  h2{ font-family:"Fraunces", serif; font-weight:600; font-size:2.1rem; letter-spacing:-.01em; margin-bottom:8px; }
 
-  /* ── install ── */
-  .tabs{ display:flex; gap:6px; margin:6px 0 16px; }
-  .tabbtn{ font-family:"IBM Plex Mono", monospace; font-size:12px; padding:8px 14px; border-radius:8px;
-    border:1px solid var(--line-2); background:transparent; color:var(--ink-soft); cursor:pointer;
-    transition:all .16s ease; }
+  /* install */
+  .tabs{ display:flex; gap:6px; margin:8px 0 16px; }
+  .tabbtn{ font-family:"IBM Plex Mono", monospace; font-size:12px; padding:9px 15px; border-radius:9px;
+    border:1px solid var(--line-2); background:transparent; color:var(--ink-soft); cursor:pointer; transition:all .16s ease; }
   .tabbtn:hover{ color:var(--ink); border-color:var(--ink-faint); }
   .tabbtn.on{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
-
-  .cmd{ position:relative; background:#161b26; border-radius:10px; padding:16px 18px; margin:10px 0;
-    border:1px solid #20283a; box-shadow:0 6px 22px rgba(28,34,48,.12); }
-  .cmd pre{ font-family:"IBM Plex Mono", monospace; font-size:13.5px; color:#e8e2d4; overflow-x:auto;
-    line-height:1.85; }
+  .cmd{ position:relative; background:#161b26; border-radius:12px; padding:17px 18px; margin:10px 0;
+    border:1px solid #20283a; box-shadow:0 10px 30px -16px rgba(28,34,48,.6); }
+  .cmd pre{ font-family:"IBM Plex Mono", monospace; font-size:13.5px; color:#e8e2d4; overflow-x:auto; line-height:1.9; }
   .cmd .prompt{ color:var(--vermilion); user-select:none; }
   .cmd .muted{ color:#7c869c; }
-  .copy{ position:absolute; top:11px; right:11px; font-family:"IBM Plex Mono", monospace; font-size:10.5px;
-    letter-spacing:.06em; text-transform:uppercase; padding:5px 9px; border-radius:6px; cursor:pointer;
+  .copy{ position:absolute; top:12px; right:12px; font-family:"IBM Plex Mono", monospace; font-size:10.5px;
+    letter-spacing:.06em; text-transform:uppercase; padding:6px 10px; border-radius:7px; cursor:pointer;
     background:#222a3c; border:1px solid #2f3a52; color:#aeb6c8; transition:all .16s ease; }
   .copy:hover{ color:#fff; border-color:var(--teal); }
   .copy.done{ background:var(--teal); border-color:var(--teal); color:#fff; }
-  .note{ font-size:.9rem; color:var(--ink-soft); margin-top:8px; }
-  .note code{ font-family:"IBM Plex Mono", monospace; background:var(--paper-3); padding:1px 5px; border-radius:4px; font-size:.86em; }
+  .note{ font-size:.92rem; color:var(--ink-soft); margin-top:10px; }
+  .note code{ font-family:"IBM Plex Mono", monospace; background:var(--paper-3); padding:1px 6px; border-radius:4px; font-size:.86em; }
 
-  /* ── lifecycle cards ── */
-  .grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:8px; }
-  .card{ background:var(--paper-2); border:1px solid var(--line); border-radius:12px; padding:18px 19px;
-    position:relative; }
-  .card .step{ font-family:"IBM Plex Mono", monospace; font-size:11px; color:var(--vermilion);
-    letter-spacing:.1em; }
-  .card h3{ font-family:"Newsreader", serif; font-size:1.3rem; font-weight:600; margin:5px 0 6px; }
-  .card h3 code{ font-family:"IBM Plex Mono", monospace; font-size:.78em; color:var(--teal);
-    background:var(--paper-3); padding:2px 7px; border-radius:5px; }
-  .card p{ font-size:.94rem; color:var(--ink-soft); }
+  /* lifecycle cards */
+  .grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:15px; margin-top:8px; }
+  .card{ background:var(--paper-2); border:1px solid var(--line); border-radius:13px; padding:19px 20px; transition:transform .18s ease, box-shadow .18s ease; }
+  .card:hover{ transform:translateY(-3px); box-shadow:0 16px 34px -22px rgba(28,34,48,.5); }
+  .card .step{ font-family:"IBM Plex Mono", monospace; font-size:11px; color:var(--vermilion); letter-spacing:.1em; }
+  .card h3{ font-family:"Fraunces", serif; font-size:1.32rem; font-weight:600; margin:6px 0 7px; }
+  .card h3 code{ font-family:"IBM Plex Mono", monospace; font-size:.74em; color:var(--teal); background:var(--paper-3); padding:2px 8px; border-radius:6px; }
+  .card p{ font-size:.95rem; color:var(--ink-soft); }
 
-  /* ── entry anatomy ── */
-  .anatomy{ display:grid; grid-template-columns:1fr; gap:14px; }
-  .filecard{ background:#fbf8f0; border:1px solid var(--line-2); border-radius:12px; overflow:hidden;
-    box-shadow:0 4px 18px rgba(28,34,48,.07); }
-  .filecard .bar{ display:flex; align-items:center; gap:8px; padding:9px 14px; background:var(--paper-3);
+  /* anatomy */
+  .anatomy{ display:grid; grid-template-columns:1fr; gap:15px; }
+  .filecard{ background:#fbf8f0; border:1px solid var(--line-2); border-radius:13px; overflow:hidden;
+    box-shadow:0 8px 26px -18px rgba(28,34,48,.4); }
+  .filecard .bar{ display:flex; align-items:center; gap:9px; padding:10px 15px; background:var(--paper-3);
     border-bottom:1px solid var(--line-2); font-family:"IBM Plex Mono", monospace; font-size:11.5px; color:var(--ink-soft); }
-  .filecard .bar .dot{ width:9px; height:9px; border-radius:50%; }
-  .filecard pre{ padding:16px 18px; font-family:"IBM Plex Mono", monospace; font-size:12.5px;
-    line-height:1.7; color:var(--ink); overflow-x:auto; }
-  .fm{ color:var(--ink-faint); }
-  .key{ color:var(--vermilion); }
-  .val{ color:var(--teal); }
+  .filecard .bar .dot{ width:9px; height:9px; border-radius:50% 50% 50% 0; transform:rotate(45deg); }
+  .filecard pre{ padding:17px 19px; font-family:"IBM Plex Mono", monospace; font-size:12.5px; line-height:1.75; color:var(--ink); overflow-x:auto; }
+  .fm{ color:var(--ink-faint); } .key{ color:var(--vermilion); } .val{ color:var(--teal); }
 
-  /* ── commands table ── */
-  table{ width:100%; border-collapse:collapse; margin-top:6px; font-size:.94rem; }
-  th, td{ text-align:left; padding:11px 12px; border-bottom:1px solid var(--line); }
-  th{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
-    color:var(--ink-faint); }
+  table{ width:100%; border-collapse:collapse; margin-top:6px; font-size:.95rem; }
+  th, td{ text-align:left; padding:12px; border-bottom:1px solid var(--line); }
+  th{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint); }
   td code{ font-family:"IBM Plex Mono", monospace; color:var(--vermilion); font-size:.92em; }
 
-  /* ── footer ── */
-  footer{ padding:40px 0 80px; }
-  .stamp{ font-family:"Newsreader", serif; font-style:italic; font-size:1.5rem; }
+  footer{ padding:46px 0 90px; }
+  .stamp{ font-family:"Fraunces", serif; font-style:italic; font-size:1.7rem; }
   .stamp b{ font-style:normal; font-weight:600; color:var(--vermilion); }
-  .madeby{ margin-top:10px; color:var(--ink-soft); font-size:.96rem; }
+  .madeby{ margin-top:11px; color:var(--ink-soft); font-size:.97rem; }
   .madeby a{ font-weight:600; }
-  .foot-links{ margin-top:18px; display:flex; gap:10px; flex-wrap:wrap; }
-  .pill{ font-family:"IBM Plex Mono", monospace; font-size:11.5px; padding:8px 13px; border-radius:30px;
+  .foot-links{ margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
+  .pill{ font-family:"IBM Plex Mono", monospace; font-size:11.5px; padding:9px 14px; border-radius:30px;
     border:1px solid var(--line-2); color:var(--ink-soft); display:inline-flex; align-items:center; gap:7px; }
   .pill:hover{ border-color:var(--vermilion); color:var(--ink); text-decoration:none; }
   .pill .ic{ color:var(--vermilion); }
 
-  @media (max-width:640px){
+  @media (max-width:780px){
+    .hero{ grid-template-columns:1fr; padding-top:64px; gap:36px; }
+    .hero-garden{ order:-1; max-width:340px; }
     .grid{ grid-template-columns:1fr; }
-    h1.logo{ font-size:3.2rem; }
+    .wordmark{ font-size:clamp(3.6rem,18vw,5rem); margin-top:26px; }
   }
 </style>
 </head>
 
 <body x-data="trovesite()">
+
+<div class="pollen" aria-hidden="true">
+  <i style="left:8%;  animation-duration:22s; animation-delay:0s"></i>
+  <i style="left:20%; animation-duration:28s; animation-delay:4s"></i>
+  <i style="left:33%; animation-duration:19s; animation-delay:9s"></i>
+  <i style="left:52%; animation-duration:25s; animation-delay:2s"></i>
+  <i style="left:66%; animation-duration:31s; animation-delay:7s"></i>
+  <i style="left:78%; animation-duration:21s; animation-delay:12s"></i>
+  <i style="left:90%; animation-duration:27s; animation-delay:5s"></i>
+</div>
+
 <div class="wrap">
 
-  <!-- masthead -->
-  <header class="mast reveal">
-    <div class="tag"><span>Trove</span><span>a Claude Code skill</span></div>
-    <h1 class="logo">Trove<span class="dot">.</span></h1>
-    <p class="lede">A memory index that grows as you use Claude Code.</p>
-    <p class="sub">
-      Install once and Claude starts keeping a <b>personal, file-based trove</b> of your decisions,
-      gotchas, conventions and references. Every fact is one markdown file. It is portable, greppable,
-      and yours, and it <b>reloads into context at the start of every session</b> so nothing learned
-      gets forgotten.
-    </p>
+  <!-- ───────── hero ───────── -->
+  <header class="hero">
+    <div class="hero-copy reveal">
+      <div class="kicker">
+        <span class="logo-mark" x-html="logoMark"></span>
+        <span>Trove</span><span class="sep">·</span><span class="who">A Claude Code skill</span>
+        <span class="rule"></span>
+      </div>
+      <h1 class="wordmark">Trove<span class="seed">.</span></h1>
+      <p class="lede">A memory index that grows as you use Claude Code.</p>
+      <p class="sub">
+        Install once and Claude starts keeping a <b>personal, file-based trove</b> of your
+        decisions, gotchas, conventions and references. Every fact is one markdown file: portable,
+        greppable, and yours, and it <b>reloads into context at the start of every session</b> so
+        nothing learned gets forgotten.
+      </p>
+      <div class="hero-cta">
+        <a class="btn-primary" href="#install">Install it</a>
+        <a class="btn-ghost" href="https://github.com/anishfyi/trove">View on GitHub</a>
+      </div>
+    </div>
+
+    <!-- interactive memory garden -->
+    <aside class="hero-garden reveal" style="animation-delay:.12s">
+      <div class="garden">
+        <svg viewBox="0 0 260 300" role="img" aria-label="A potted plant that grows a leaf for every memory">
+          <!-- soft ground glow -->
+          <ellipse cx="130" cy="252" rx="92" ry="20" fill="rgba(111,74,48,.10)"/>
+          <!-- stem -->
+          <path class="stem" d="M130,250 L130,46"/>
+          <!-- leaves: one per memory (max 8 shown) -->
+          <template x-for="(lf, k) in leaves" :key="k">
+            <g :transform="`translate(${lf.x} ${lf.y}) scale(${lf.side} 1)`">
+              <path class="leaf" :fill="lf.color" d="M0,0 C16,-2 30,-7 38,-22 C24,-18 9,-13 0,0 Z"/>
+              <path class="leaf-vein" d="M2,-1 C14,-6 24,-10 33,-19"/>
+            </g>
+          </template>
+          <!-- flower: blooms as memories accumulate -->
+          <template x-for="j in petals" :key="j">
+            <g :transform="`rotate(${(j-1)*60} 130 40)`">
+              <ellipse class="petal" cx="130" cy="24" rx="6.4" ry="12" :fill="j % 2 ? 'var(--gold)' : '#e0b657'"/>
+            </g>
+          </template>
+          <circle class="heart" x-show="memories.length > 0" cx="130" cy="40" r="7.5" fill="var(--vermilion)"/>
+          <circle x-show="memories.length > 0" cx="127.5" cy="37.5" r="2.4" fill="rgba(255,255,255,.55)"/>
+          <!-- closed bud when empty -->
+          <circle x-show="memories.length === 0" cx="130" cy="46" r="5.5" fill="var(--leaf)"/>
+
+          <!-- terracotta pot -->
+          <ellipse cx="130" cy="250" rx="58" ry="11" fill="var(--soil)"/>
+          <path d="M74,256 L186,256 L171,300 L89,300 Z" fill="var(--pot)"/>
+          <path d="M74,256 L186,256 L181,272 L79,272 Z" fill="var(--pot-2)" opacity=".55"/>
+          <rect x="66" y="244" width="128" height="18" rx="5" fill="var(--pot)"/>
+          <rect x="66" y="244" width="128" height="6" rx="3" fill="#cf7048"/>
+        </svg>
+        <div class="shelf"></div>
+
+        <div class="garden-bar">
+          <button class="grow-btn" @click="remember()"><span class="plus">+</span> remember a fact</button>
+          <div class="count"><span x-text="memories.length"></span><small>memories</small></div>
+          <button class="reset" @click="reset()" x-show="memories.length">clear</button>
+        </div>
+        <div class="latest">
+          <template x-if="last">
+            <span style="display:flex;align-items:center;gap:9px">
+              <span class="swatch" :style="`background:${leafColor(last.type)}`"></span>
+              <span class="lt" x-text="last.type"></span>
+              <span x-text="last.label"></span>
+            </span>
+          </template>
+          <template x-if="!last"><span style="color:var(--ink-faint)">an empty pot, ready to grow</span></template>
+        </div>
+        <div class="garden-cap">
+          Each leaf is one memory file. Feed it and watch it grow.
+          <span class="overflow-note" x-show="memories.length > 8" x-text="`(+${memories.length - 8} more rooted below)`"></span>
+        </div>
+      </div>
+    </aside>
   </header>
 
-  <!-- install -->
-  <section class="reveal" style="animation-delay:.06s">
+  <!-- ───────── install ───────── -->
+  <section class="sec" id="install" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
     <div class="eyebrow"><span class="n">01</span> Install</div>
     <h2>Add it to Claude Code</h2>
 
@@ -167,13 +323,17 @@
     <div x-show="tab==='plugin'">
       <div class="cmd">
         <button class="copy" :class="{done: copied==='p1'}" @click="copy('p1', plugins)" x-text="copied==='p1' ? 'Copied' : 'Copy'"></button>
-        <pre><span class="prompt">/plugin</span> marketplace add anishfyi/trove
+        <pre><span class="prompt">/plugin</span> marketplace add https://github.com/anishfyi/trove.git
 <span class="prompt">/plugin</span> install trove@anishfyi-trove</pre>
       </div>
       <p class="note">
-        Run these inside Claude Code. The first command registers this repo as a plugin marketplace;
-        the second installs the <code>trove</code> plugin (its skills and the session hook). Then run
-        <code>/trove:init</code> once to create your trove.
+        Run these inside Claude Code. The first registers this repo as a plugin marketplace over
+        <b>HTTPS</b> (no SSH keys needed); the second installs the <code>trove</code> plugin and its
+        session hook. Then run <code>/trove:init</code> once to create your trove.
+      </p>
+      <p class="note" style="color:var(--ink-faint)">
+        Have SSH set up for GitHub? The shorthand <code>/plugin marketplace add anishfyi/trove</code>
+        also works. Use the HTTPS URL above if you hit an SSH "Permission denied (publickey)" error.
       </p>
     </div>
 
@@ -185,15 +345,15 @@ git clone https://github.com/anishfyi/trove /tmp/trove
 cp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/</pre>
       </div>
       <p class="note">
-        This copies the three skills into <code>~/.claude/skills/</code> so you get
-        <code>/init</code>, <code>/remember</code> and <code>/recall</code>. The automatic
-        session-load hook only ships with the plugin install above.
+        Copies the three skills into <code>~/.claude/skills/</code> so you get <code>/init</code>,
+        <code>/remember</code> and <code>/recall</code>. The automatic session-load hook only ships
+        with the plugin install above.
       </p>
     </div>
   </section>
 
-  <!-- how it works -->
-  <section class="reveal" style="animation-delay:.1s">
+  <!-- ───────── how it works ───────── -->
+  <section class="sec" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
     <div class="eyebrow"><span class="n">02</span> How it works</div>
     <h2>Four moves, one growing index</h2>
     <div class="grid">
@@ -205,7 +365,7 @@ cp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/</pre>
       <div class="card">
         <div class="step">STEP 02</div>
         <h3>Capture it <code>/trove:remember</code></h3>
-        <p>Distills a decision, gotcha, preference or reference into one atomic entry file and adds a one-line pointer to the index. Dedupes against what is already there.</p>
+        <p>Distills a decision, gotcha, preference or reference into one atomic entry, the way a new leaf sprouts, and adds a one-line pointer to the index. Dedupes against what is already there.</p>
       </div>
       <div class="card">
         <div class="step">STEP 03</div>
@@ -220,13 +380,13 @@ cp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/</pre>
     </div>
   </section>
 
-  <!-- anatomy -->
-  <section class="reveal" style="animation-delay:.14s">
+  <!-- ───────── anatomy ───────── -->
+  <section class="sec" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
     <div class="eyebrow"><span class="n">03</span> Anatomy of an entry</div>
     <h2>One fact, one file</h2>
     <div class="anatomy">
       <div class="filecard">
-        <div class="bar"><span class="dot" style="background:var(--vermilion)"></span> entries/use-pgx-not-orm.md</div>
+        <div class="bar"><span class="dot" style="background:var(--teal)"></span> entries/use-pgx-not-orm.md</div>
         <pre><span class="fm">---</span>
 <span class="key">title:</span> <span class="val">Use pgx + sqlc, not a heavy ORM, in Go services</span>
 <span class="key">slug:</span> <span class="val">use-pgx-not-orm</span>
@@ -239,12 +399,11 @@ We standardised on pgx for the driver and sqlc to generate
 type-safe query code from plain SQL. GORM was rejected for
 hiding query cost behind reflection.
 
-<span class="key">**Why it matters:**</span> reach for this on any new Go service;
-do not reintroduce a runtime ORM.
+<span class="key">**Why it matters:**</span> reach for this on any new Go service.
 <span class="key">**Related:**</span> [[deploy-single-binary]]</pre>
       </div>
       <div class="filecard">
-        <div class="bar"><span class="dot" style="background:var(--teal)"></span> INDEX.md</div>
+        <div class="bar"><span class="dot" style="background:var(--vermilion)"></span> INDEX.md</div>
         <pre><span class="fm"># Trove Index</span>
 
 - [Use pgx + sqlc, not a heavy ORM](entries/use-pgx-not-orm.md) - Go data-layer decision
@@ -254,8 +413,8 @@ do not reintroduce a runtime ORM.
     </div>
   </section>
 
-  <!-- commands -->
-  <section class="reveal" style="animation-delay:.18s">
+  <!-- ───────── commands ───────── -->
+  <section class="sec" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
     <div class="eyebrow"><span class="n">04</span> Commands</div>
     <h2>The whole surface</h2>
     <table>
@@ -268,13 +427,13 @@ do not reintroduce a runtime ORM.
       </tbody>
     </table>
     <p class="note">
-      The skills also auto-trigger on intent: say "remember this in my trove" or "what do I know about
-      X" and the right skill fires without typing the command.
+      The skills also auto-trigger on intent: say "remember this in my trove" or "what do I know
+      about X" and the right skill fires without typing the command.
     </p>
   </section>
 
-  <!-- footer -->
-  <footer class="reveal" style="animation-delay:.22s">
+  <!-- ───────── footer ───────── -->
+  <footer class="sec" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}" style="border-bottom:none">
     <p class="stamp">Built by <b>anishfyi</b>.</p>
     <p class="madeby">
       Backed by a written
@@ -290,14 +449,15 @@ do not reintroduce a runtime ORM.
 
 </div>
 
-<style>[x-cloak]{ display:none !important; }</style>
+<script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script>
   function trovesite(){
     return {
+      // ── install ──
       tab: 'plugin',
       copied: null,
-      plugins: "/plugin marketplace add anishfyi/trove\n/plugin install trove@anishfyi-trove",
+      plugins: "/plugin marketplace add https://github.com/anishfyi/trove.git\n/plugin install trove@anishfyi-trove",
       manual: "git clone https://github.com/anishfyi/trove /tmp/trove\ncp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/",
       copy(id, text){
         navigator.clipboard.writeText(text).then(() => {
@@ -305,6 +465,60 @@ do not reintroduce a runtime ORM.
           setTimeout(() => { if(this.copied === id) this.copied = null; }, 1400);
         });
       },
+
+      // ── logo mark (sprout in a terracotta pot) ──
+      logoMark: `<svg viewBox="0 0 24 24" width="100%" height="100%">
+        <path d="M6 14h12l-1.6 7H7.6z" fill="#c0613a"/>
+        <rect x="5" y="12.4" width="14" height="2.7" rx="1" fill="#d2724a"/>
+        <path d="M12 13V6" stroke="#2f6f6a" stroke-width="1.7" stroke-linecap="round"/>
+        <path d="M12 9C9 9 7.4 7.1 7.4 7.1 10 6.6 12 8 12 9Z" fill="#5b9c6a"/>
+        <path d="M12 8c3 0 4.6-1.9 4.6-1.9C14 5.5 12 7 12 8Z" fill="#7cb98a"/>
+        <circle cx="12" cy="5" r="1.8" fill="#d83a22"/>
+      </svg>`,
+
+      // ── memory garden ──
+      seeds: [
+        { label: "Use pgx + sqlc, not a heavy ORM", type: "decision" },
+        { label: "Staging DB mirrors prod nightly",  type: "gotcha" },
+        { label: "Tabs, never spaces, in this repo", type: "preference" },
+        { label: "Queue-depth board on Grafana",     type: "reference" },
+        { label: "Deploy as a single static binary", type: "decision" },
+        { label: "order_id is the Shopify number",   type: "gotcha" },
+        { label: "Run migrations only with approval",type: "preference" },
+        { label: "Auth flow lives in docs/auth.md",  type: "reference" },
+        { label: "Prefer composition over inheritance", type: "preference" },
+        { label: "Webhook retries are not idempotent",  type: "gotcha" },
+        { label: "Feature flags gate the new checkout", type: "decision" },
+        { label: "Cache key scheme in cache/keys.md",   type: "reference" },
+      ],
+      memories: [],
+
+      init(){ this.remember(); this.remember(); this.remember(); },
+
+      remember(){
+        const s = this.seeds[this.memories.length % this.seeds.length];
+        this.memories.push(s);
+      },
+      reset(){ this.memories = []; },
+
+      get last(){ return this.memories.length ? this.memories[this.memories.length - 1] : null; },
+
+      leafColor(type){
+        return ({ decision:'var(--teal)', gotcha:'var(--vermilion)', preference:'var(--gold)',
+                  reference:'var(--blue)', project:'var(--leaf)', snippet:'var(--ink-soft)' })[type] || 'var(--leaf)';
+      },
+
+      // up to 8 leaves climb the stem, alternating sides
+      get leaves(){
+        return this.memories.slice(0, 8).map((m, k) => ({
+          x: 130,
+          y: 250 - 30 - k * 23,
+          side: k % 2 === 0 ? 1 : -1,
+          color: this.leafColor(m.type),
+        }));
+      },
+      // up to 6 petals bloom as memories accumulate
+      get petals(){ return Math.min(this.memories.length, 6); },
     };
   }
 </script>
