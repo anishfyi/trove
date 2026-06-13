@@ -73,8 +73,7 @@
   section.sec.seen{ opacity:1; transform:none; }
 
   /* ───────────────── hero ───────────────── */
-  .hero{ display:grid; grid-template-columns:minmax(0,1.12fr) minmax(290px,.88fr); gap:30px;
-    align-items:center; padding:88px 0 56px; border-bottom:2px solid var(--ink); }
+  .hero{ display:block; padding:84px 0 50px; border-bottom:2px solid var(--ink); }
 
   .kicker{ display:flex; align-items:center; gap:13px; font-family:"IBM Plex Mono", monospace;
     font-size:11px; letter-spacing:.32em; text-transform:uppercase; color:var(--vermilion); }
@@ -233,7 +232,6 @@
   <header class="hero">
     <div class="hero-copy reveal">
       <div class="kicker">
-        <span class="logo-mark" x-html="logoMark"></span>
         <span>Trove</span><span class="sep">·</span><span class="who">A Claude Code skill</span>
         <span class="rule"></span>
       </div>
@@ -251,61 +249,7 @@
       </div>
     </div>
 
-    <!-- interactive memory garden -->
-    <aside class="hero-garden reveal" style="animation-delay:.12s">
-      <div class="garden">
-        <svg viewBox="0 0 200 214" role="img" aria-label="A small potted plant that grows a hand-drawn leaf for every memory">
-          <defs>
-            <!-- gentle hand-drawn wobble so the whole plant looks sketched -->
-            <filter id="sketch" x="-15%" y="-15%" width="130%" height="130%">
-              <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="2" seed="6" result="n"/>
-              <feDisplacementMap in="SourceGraphic" in2="n" scale="1.7" xChannelSelector="R" yChannelSelector="G"/>
-            </filter>
-          </defs>
 
-          <ellipse cx="100" cy="158" rx="60" ry="10" fill="rgba(111,74,48,.10)"/>
-
-          <g filter="url(#sketch)">
-            <!-- stem (gentle curve) -->
-            <path class="stem" :d="stemPath"/>
-
-            <!-- LEAVES: 8 hand-drawn slots, sprout as memories grow -->
-            <g x-show="memories.length>0" transform="translate(100 150) scale(1 1)"><path class="leaf" :fill="leafColorAt(0)" d="M0,0 C7,-3 16,-7 24,-16 C25,-17 24,-18 22,-17 C14,-12 6,-7 0,-2 Z"/><path class="vein" d="M1,-1 C8,-6 15,-10 21,-15"/></g>
-            <g x-show="memories.length>1" transform="translate(100 139) scale(-1 1)"><path class="leaf" :fill="leafColorAt(1)" d="M0,0 C7,-3 16,-7 24,-16 C25,-17 24,-18 22,-17 C14,-12 6,-7 0,-2 Z"/><path class="vein" d="M1,-1 C8,-6 15,-10 21,-15"/></g>
-            <g x-show="memories.length>2" transform="translate(100 128) scale(1 1)"><path class="leaf" :fill="leafColorAt(2)" d="M0,0 C7,-3 16,-7 24,-16 C25,-17 24,-18 22,-17 C14,-12 6,-7 0,-2 Z"/><path class="vein" d="M1,-1 C8,-6 15,-10 21,-15"/></g>
-            <g x-show="memories.length>3" transform="translate(100 117) scale(-1 1)"><path class="leaf" :fill="leafColorAt(3)" d="M0,0 C7,-3 16,-7 24,-16 C25,-17 24,-18 22,-17 C14,-12 6,-7 0,-2 Z"/><path class="vein" d="M1,-1 C8,-6 15,-10 21,-15"/></g>
-            <g x-show="memories.length>4" transform="translate(100 106) scale(1 1)"><path class="leaf" :fill="leafColorAt(4)" d="M0,0 C7,-3 16,-7 24,-16 C25,-17 24,-18 22,-17 C14,-12 6,-7 0,-2 Z"/><path class="vein" d="M1,-1 C8,-6 15,-10 21,-15"/></g>
-            <g x-show="memories.length>5" transform="translate(100 95) scale(-1 1)"><path class="leaf" :fill="leafColorAt(5)" d="M0,0 C7,-3 16,-7 24,-16 C25,-17 24,-18 22,-17 C14,-12 6,-7 0,-2 Z"/><path class="vein" d="M1,-1 C8,-6 15,-10 21,-15"/></g>
-            <g x-show="memories.length>6" transform="translate(100 84) scale(1 1)"><path class="leaf" :fill="leafColorAt(6)" d="M0,0 C7,-3 16,-7 24,-16 C25,-17 24,-18 22,-17 C14,-12 6,-7 0,-2 Z"/><path class="vein" d="M1,-1 C8,-6 15,-10 21,-15"/></g>
-            <g x-show="memories.length>7" transform="translate(100 73) scale(-1 1)"><path class="leaf" :fill="leafColorAt(7)" d="M0,0 C7,-3 16,-7 24,-16 C25,-17 24,-18 22,-17 C14,-12 6,-7 0,-2 Z"/><path class="vein" d="M1,-1 C8,-6 15,-10 21,-15"/></g>
-
-            <!-- no flower: just a clean leafy sprig that grows with your memories -->
-
-            <!-- terracotta pot, hand-drawn outline -->
-            <ellipse cx="100" cy="156" rx="40" ry="7" fill="var(--soil)"/>
-            <path d="M64,162 L136,162 L126,196 L74,196 Z" fill="var(--pot)" stroke="var(--sketch)" stroke-width="1.1" stroke-linejoin="round"/>
-            <path d="M66,164 L134,164 L131,175 L69,175 Z" fill="var(--pot-2)" opacity=".5"/>
-            <rect x="56" y="152" width="88" height="13" rx="4" fill="var(--pot)" stroke="var(--sketch)" stroke-width="1.1"/>
-            <rect x="59" y="154" width="82" height="3.5" rx="2" fill="#cf7048"/>
-          </g>
-        </svg>
-
-        <div class="controls">
-          <button class="grow-btn" @click="remember()"><span class="plus">+</span> remember a fact</button>
-          <div class="meta">
-            <span class="count" x-text="memories.length"></span>
-            <span class="meta-lbl">memories</span>
-            <span class="overflow-note" x-show="memories.length > 8" x-text="`+${memories.length - 8} rooted`"></span>
-            <button class="reset" @click="reset()" x-show="memories.length">clear</button>
-          </div>
-          <div class="latest">
-            <span class="swatch" :style="`background:${ last ? leafColor(last.type) : 'var(--ink-faint)' }`"></span>
-            <span class="lt" x-text="last ? last.type : 'empty'"></span>
-            <span class="lbl" x-text="last ? last.label : 'a pot ready to grow'"></span>
-          </div>
-        </div>
-      </div>
-    </aside>
   </header>
 
   <!-- ───────── install ───────── -->
