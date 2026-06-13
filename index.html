@@ -4,8 +4,20 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Trove - a personal memory index for Claude Code</title>
-<meta name="description" content="A Claude Code skill that builds and maintains a personal, file-based knowledge trove as you work, and reloads it every session." />
+<meta name="description" content="The semantic memory layer for Claude Code. A personal, file-based trove of your decisions, gotchas and references (Markdown or JSON), auto-loaded into context every session." />
 <link rel="icon" type="image/svg+xml" href="logo.svg" />
+<link rel="apple-touch-icon" href="logo.svg" />
+<meta name="theme-color" content="#f5f0e6" />
+<meta name="color-scheme" content="light" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Trove - the semantic memory layer for Claude Code" />
+<meta property="og:description" content="Install once and Claude Code keeps a personal, file-based trove of your decisions, gotchas and references (Markdown or JSON), and reloads it into context every session." />
+<meta property="og:image" content="https://anishfyi.github.io/trove/logo.svg" />
+<meta property="og:url" content="https://anishfyi.github.io/trove/" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Trove - the semantic memory layer for Claude Code" />
+<meta name="twitter:description" content="A personal, file-based memory index for Claude Code. Markdown or JSON entries, auto-loaded every session." />
+<meta name="twitter:image" content="https://anishfyi.github.io/trove/logo.svg" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -73,7 +85,7 @@
   section.sec.seen{ opacity:1; transform:none; }
 
   /* ───────────────── hero ───────────────── */
-  .hero{ display:block; padding:84px 0 50px; border-bottom:2px solid var(--ink); }
+  .hero{ display:block; padding:64px 0 50px; border-bottom:2px solid var(--ink); }
 
   .kicker{ display:flex; align-items:center; gap:13px; font-family:"IBM Plex Mono", monospace;
     font-size:11px; letter-spacing:.32em; text-transform:uppercase; color:var(--vermilion); }
@@ -100,6 +112,27 @@
   .btn-ghost{ font-family:"IBM Plex Mono", monospace; font-size:12.5px; color:var(--ink-soft);
     border:1px solid var(--line-2); border-radius:9px; padding:12px 16px; text-decoration:none; transition:all .14s ease; }
   .btn-ghost:hover{ color:var(--ink); border-color:var(--ink-faint); text-decoration:none; }
+
+  /* sticky top nav */
+  .topbar{ position:sticky; top:0; z-index:100; background:rgba(245,240,230,.82);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+  .topbar-in{ max-width:1080px; margin:0 auto; padding:11px 30px; display:flex; align-items:center; justify-content:space-between; }
+  .tb-brand{ display:flex; align-items:center; gap:9px; font-family:"Fraunces", serif; font-weight:600; font-size:1.18rem; color:var(--ink); }
+  .tb-brand img{ width:22px; height:22px; }
+  .tb-brand:hover{ text-decoration:none; }
+  .tb-links{ display:flex; align-items:center; gap:22px; font-family:"IBM Plex Mono", monospace; font-size:12px; }
+  .tb-links a{ color:var(--ink-soft); }
+  .tb-links a:hover{ color:var(--ink); text-decoration:none; }
+  .tb-gh{ border:1px solid var(--line-2); border-radius:8px; padding:7px 12px; transition:border-color .16s ease; }
+  .tb-gh:hover{ border-color:var(--vermilion); }
+  .hero, .sec{ scroll-margin-top:64px; }
+
+  /* finished footer */
+  .foot-logo{ display:flex; align-items:center; gap:11px; margin-bottom:14px; }
+  .foot-logo img{ width:38px; height:38px; }
+  .foot-word{ font-family:"Fraunces", serif; font-weight:600; font-size:1.5rem; color:var(--ink); }
+  .foot-tag{ font-family:"Newsreader", serif; font-style:italic; font-size:1.15rem; color:var(--ink-soft); margin-bottom:24px; }
+  @media (max-width:560px){ .tb-links a:not(.tb-gh){ display:none; } .topbar-in{ padding:10px 16px; } }
 
   /* ───────────────── memory garden (small square) ───────────────── */
   .hero-garden{ justify-self:center; width:100%; max-width:230px; }
@@ -252,10 +285,21 @@
   <i style="left:90%; animation-duration:27s; animation-delay:5s"></i>
 </div>
 
+<nav class="topbar">
+  <div class="topbar-in">
+    <a class="tb-brand" href="#top"><img src="logo.svg" alt="" /> Trove</a>
+    <div class="tb-links">
+      <a href="#install">Install</a>
+      <a href="#why">Why</a>
+      <a class="tb-gh" href="https://github.com/anishfyi/trove">GitHub</a>
+    </div>
+  </div>
+</nav>
+
 <div class="wrap">
 
   <!-- ───────── hero ───────── -->
-  <header class="hero">
+  <header class="hero" id="top">
     <div class="hero-copy reveal">
       <div class="kicker">
         <img class="logo-mark" src="logo.svg" alt="Trove logo" />
@@ -266,9 +310,9 @@
       <p class="lede">A memory index that grows as you use Claude Code.</p>
       <p class="sub">
         Install once and Claude starts keeping a <b>personal, file-based trove</b> of your
-        decisions, gotchas, conventions and references. Every fact is one markdown file: portable,
-        greppable, and yours, and it <b>reloads into context at the start of every session</b> so
-        nothing learned gets forgotten.
+        decisions, gotchas, conventions and references. Every fact is one file, <b>Markdown or
+        JSON</b>, and it <b>reloads into context at the start of every session</b> so nothing
+        learned gets forgotten.
       </p>
       <div class="hero-cta">
         <a class="btn-primary" href="#install">Install it</a>
@@ -410,7 +454,7 @@ cp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/</pre>
   </section>
 
   <!-- ───────── why it speeds you up ───────── -->
-  <section class="sec" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
+  <section class="sec" id="why" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
     <div class="eyebrow"><span class="n">03</span> Why it matters</div>
     <h2>Why it speeds you up</h2>
     <p class="lead-p">
@@ -516,6 +560,8 @@ hiding query cost behind reflection.
 
   <!-- ───────── footer ───────── -->
   <footer class="sec" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}" style="border-bottom:none">
+    <div class="foot-logo"><img src="logo.svg" alt="" /><span class="foot-word">Trove</span></div>
+    <p class="foot-tag">The semantic memory layer for Claude Code.</p>
     <p class="stamp">Built by <b>anishfyi</b>.</p>
     <p class="madeby">
       Backed by a written
