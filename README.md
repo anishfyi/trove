@@ -14,24 +14,41 @@ yours. No database, no service, no lock-in.
 
 ### Plugin (recommended)
 
-Run these inside Claude Code:
+Run these **one at a time** inside Claude Code, top to bottom.
+
+**1. Add the marketplace.** A marketplace is just a Git repo that lists installable plugins. This
+points Claude Code at Trove's repo. Nothing is installed yet.
 
 ```
-/plugin marketplace add https://github.com/anishfyi/trove.git
+/plugin marketplace add anishfyi/trove
+```
+
+> Hit an SSH `Permission denied (publickey)` error? You have no SSH key on GitHub, so use the HTTPS
+> URL instead: `/plugin marketplace add https://github.com/anishfyi/trove.git`
+
+**2. Install the plugin.** Pulls the Trove plugin (its three skills plus the SessionStart hook) from
+that marketplace. Read it as `plugin@marketplace`.
+
+```
 /plugin install trove@anishfyi-trove
 ```
 
-The first command registers this repo as a plugin marketplace over **HTTPS** (no SSH keys needed);
-the second installs the `trove` plugin, which provides three skills and a SessionStart hook. Then
-create your trove once:
+**3. Reload so it activates.** A freshly installed plugin is **not live until you reload**. This
+activates the skills and hook in your current session (verify with `/plugin list`). The auto-load
+hook starts firing from your **next new session** onward.
+
+```
+/reload-plugins
+```
+
+**4. Create your trove.** Scaffolds `~/.claude/trove` with an `INDEX.md` and an `entries/` folder.
 
 ```
 /trove:init
 ```
 
-> If you have SSH configured for GitHub, the shorthand `/plugin marketplace add anishfyi/trove` also
-> works. Use the HTTPS `.git` URL above if you hit an SSH `Permission denied (publickey)` error, since
-> the shorthand can resolve to `git@github.com` which needs SSH keys.
+Done. From here, say "remember this" or run `/trove:remember` to capture, and `/trove:recall` to
+search it back.
 
 ### Manual (skills only, no auto-load hook)
 
@@ -56,6 +73,36 @@ the plugin install above.
 The skills also auto-trigger on intent: say "remember this in my trove" or "what do I know about X"
 and the right skill fires without typing the command. Every new session, the SessionStart hook loads
 your `INDEX.md` into context so Claude starts aware of what it already knows.
+
+---
+
+## Why it speeds you up
+
+Every Claude Code session normally starts from zero: you re-explain the codebase, the conventions,
+the decisions you already made. Trove ends that. What you teach it once it knows for good, so each
+session begins further ahead than the last.
+
+**It paces up your work**
+
+- **Stop re-explaining.** Claude opens each session already aware of your decisions, conventions and
+  gotchas. No daily "here is how this repo works" preamble.
+- **Stop repeating mistakes.** A footgun you hit once is written down, so Claude does not walk into
+  it a second time.
+- **Decide faster.** Past decisions and their rationale are one recall away, so you do not
+  re-litigate or contradict yourself.
+- **Onboard instantly.** A new machine, or a teammate on a project-scope trove, inherits all the
+  accumulated knowledge at once.
+- **Compounding returns.** Teach it once, benefit every session after. The longer you use it, the
+  more leverage it has.
+
+**Why the index is the engine**
+
+The `INDEX.md` is the part that actually loads into context at session start, one compact line per
+entry, so Claude knows *everything it has* without paying to load every full file. Recall stays fast
+and cheap: Claude scans the index, then opens only the handful of entries that matter instead of
+dumping the whole trove into the prompt. It is also your human-readable map, skimmable and prunable
+like a notebook's table of contents, and each one-line hook is written to match intent. The index is
+the difference between a pile of files and a memory you can actually use.
 
 ---
 

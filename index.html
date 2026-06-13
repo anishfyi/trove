@@ -170,6 +170,30 @@
   .note{ font-size:.92rem; color:var(--ink-soft); margin-top:10px; }
   .note code{ font-family:"IBM Plex Mono", monospace; background:var(--paper-3); padding:1px 6px; border-radius:4px; font-size:.86em; }
 
+  /* numbered install steps */
+  .steps{ list-style:none; margin-top:10px; }
+  .step-row{ display:grid; grid-template-columns:32px 1fr; gap:16px; padding:20px 0; border-top:1px solid var(--line); }
+  .step-row:first-child{ border-top:none; padding-top:8px; }
+  .step-num{ width:32px; height:32px; border-radius:50%; background:var(--ink); color:var(--paper);
+    font-family:"Fraunces", serif; font-size:1.05rem; display:flex; align-items:center; justify-content:center; flex:none; }
+  .step-title{ font-family:"Fraunces", serif; font-size:1.25rem; font-weight:600; margin-bottom:8px; }
+  .cmd.mini{ padding:11px 14px; margin:4px 0 11px; }
+  .cmd.mini pre{ font-size:13px; line-height:1.4; }
+  .step-detail{ font-size:.95rem; color:var(--ink-soft); max-width:62ch; }
+  .step-detail b{ color:var(--ink); }
+  .step-detail code{ font-family:"IBM Plex Mono", monospace; background:var(--paper-3); padding:1px 5px; border-radius:4px; font-size:.84em; }
+  .step-detail.subtle{ margin-top:8px; font-size:.86rem; color:var(--ink-faint); }
+  .step-detail.subtle code{ background:none; padding:0; color:var(--ink-soft); }
+
+  /* why-it-matters lists */
+  .lead-p{ max-width:64ch; color:var(--ink-soft); font-size:1.04rem; margin-bottom:22px; }
+  .why-list{ list-style:none; display:flex; flex-direction:column; gap:11px; }
+  .why-list li{ font-size:.94rem; color:var(--ink-soft); padding-left:18px; position:relative; line-height:1.5; }
+  .why-list li::before{ content:""; position:absolute; left:0; top:.5em; width:7px; height:7px;
+    border-radius:50% 50% 50% 0; transform:rotate(45deg); background:var(--vermilion); }
+  .why-list b{ color:var(--ink); }
+  .why-list code{ font-family:"IBM Plex Mono", monospace; background:var(--paper-3); padding:1px 5px; border-radius:4px; font-size:.85em; }
+
   /* lifecycle cards */
   .grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:15px; margin-top:8px; }
   .card{ background:var(--paper-2); border:1px solid var(--line); border-radius:13px; padding:19px 20px; transition:transform .18s ease, box-shadow .18s ease; }
@@ -263,20 +287,80 @@
     </div>
 
     <div x-show="tab==='plugin'">
-      <div class="cmd">
-        <button class="copy" :class="{done: copied==='p1'}" @click="copy('p1', plugins)" x-text="copied==='p1' ? 'Copied' : 'Copy'"></button>
-        <pre><span class="prompt">/plugin</span> marketplace add https://github.com/anishfyi/trove.git
-<span class="prompt">/plugin</span> install trove@anishfyi-trove</pre>
-      </div>
-      <p class="note">
-        Run these inside Claude Code. The first registers this repo as a plugin marketplace over
-        <b>HTTPS</b> (no SSH keys needed); the second installs the <code>trove</code> plugin and its
-        session hook. Then run <code>/trove:init</code> once to create your trove.
-      </p>
-      <p class="note" style="color:var(--ink-faint)">
-        Have SSH set up for GitHub? The shorthand <code>/plugin marketplace add anishfyi/trove</code>
-        also works. Use the HTTPS URL above if you hit an SSH "Permission denied (publickey)" error.
-      </p>
+      <p class="note" style="margin:0 0 6px">Run these one at a time inside Claude Code, top to bottom.</p>
+      <ol class="steps">
+
+        <li class="step-row">
+          <div class="step-num">1</div>
+          <div class="step-main">
+            <h3 class="step-title">Add the marketplace</h3>
+            <div class="cmd mini">
+              <button class="copy" :class="{done: copied==='s1'}" @click="copy('s1', '/plugin marketplace add anishfyi/trove')" x-text="copied==='s1' ? 'Copied' : 'Copy'"></button>
+              <pre><span class="prompt">/plugin</span> marketplace add anishfyi/trove</pre>
+            </div>
+            <p class="step-detail">
+              A marketplace is just a Git repo that lists installable plugins. This points Claude Code
+              at Trove's repo so it knows where to fetch the plugin from. Nothing is installed yet.
+            </p>
+            <p class="step-detail subtle">
+              Hit an SSH <code>Permission denied (publickey)</code> error? You have no SSH key on GitHub,
+              so use the HTTPS URL instead: <code>/plugin marketplace add https://github.com/anishfyi/trove.git</code>
+            </p>
+          </div>
+        </li>
+
+        <li class="step-row">
+          <div class="step-num">2</div>
+          <div class="step-main">
+            <h3 class="step-title">Install the plugin</h3>
+            <div class="cmd mini">
+              <button class="copy" :class="{done: copied==='s2'}" @click="copy('s2', '/plugin install trove@anishfyi-trove')" x-text="copied==='s2' ? 'Copied' : 'Copy'"></button>
+              <pre><span class="prompt">/plugin</span> install trove@anishfyi-trove</pre>
+            </div>
+            <p class="step-detail">
+              Pulls the Trove plugin from that marketplace: its three skills (<code>init</code>,
+              <code>remember</code>, <code>recall</code>) plus the SessionStart hook. Read it as
+              <b>plugin@marketplace</b>, so <code>trove</code> is the plugin and <code>anishfyi-trove</code>
+              is the marketplace you just added.
+            </p>
+          </div>
+        </li>
+
+        <li class="step-row">
+          <div class="step-num">3</div>
+          <div class="step-main">
+            <h3 class="step-title">Reload so it activates</h3>
+            <div class="cmd mini">
+              <button class="copy" :class="{done: copied==='s3'}" @click="copy('s3', '/reload-plugins')" x-text="copied==='s3' ? 'Copied' : 'Copy'"></button>
+              <pre><span class="prompt">/reload-plugins</span></pre>
+            </div>
+            <p class="step-detail">
+              A freshly installed plugin is <b>not live until you reload</b>. This activates Trove's
+              skills and hook in your current session. Confirm it landed with <code>/plugin list</code>,
+              and type <code>/trove:</code> to see the new commands appear. The auto-load hook starts
+              firing from your <b>next new session</b> onward.
+            </p>
+          </div>
+        </li>
+
+        <li class="step-row">
+          <div class="step-num">4</div>
+          <div class="step-main">
+            <h3 class="step-title">Create your trove</h3>
+            <div class="cmd mini">
+              <button class="copy" :class="{done: copied==='s4'}" @click="copy('s4', '/trove:init')" x-text="copied==='s4' ? 'Copied' : 'Copy'"></button>
+              <pre><span class="prompt">/trove:init</span></pre>
+            </div>
+            <p class="step-detail">
+              Scaffolds your trove at <code>~/.claude/trove</code> (or per project): an
+              <code>INDEX.md</code> and an <code>entries/</code> folder. That is the whole setup. From
+              here, say <b>"remember this"</b> or run <code>/trove:remember</code> to capture a fact,
+              and <code>/trove:recall</code> to search it back.
+            </p>
+          </div>
+        </li>
+
+      </ol>
     </div>
 
     <div x-show="tab==='manual'" x-cloak>
@@ -322,9 +406,41 @@ cp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/</pre>
     </div>
   </section>
 
+  <!-- ───────── why it speeds you up ───────── -->
+  <section class="sec" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
+    <div class="eyebrow"><span class="n">03</span> Why it matters</div>
+    <h2>Why it speeds you up</h2>
+    <p class="lead-p">
+      Every Claude Code session normally starts from zero: you re-explain the codebase, the
+      conventions, the decisions you already made. Trove ends that. What you teach it once it knows
+      for good, so each session begins further ahead than the last.
+    </p>
+    <div class="grid">
+      <div class="card">
+        <h3>It paces up your work</h3>
+        <ul class="why-list">
+          <li><b>Stop re-explaining.</b> Claude opens each session already aware of your decisions, conventions and gotchas. No daily "here is how this repo works" preamble.</li>
+          <li><b>Stop repeating mistakes.</b> A footgun you hit once is written down, so Claude does not walk into it a second time.</li>
+          <li><b>Decide faster.</b> Past decisions and their rationale are one recall away, so you do not re-litigate or contradict yourself.</li>
+          <li><b>Onboard instantly.</b> A new machine, or a teammate on a project-scope trove, inherits all the accumulated knowledge at once.</li>
+          <li><b>Compounding returns.</b> Teach it once, benefit every session after. The longer you use it, the more leverage it has.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Why the index is the engine</h3>
+        <ul class="why-list">
+          <li><b>It is what loads every session.</b> The <code>INDEX.md</code> (one compact line per entry) is injected into context at session start, so Claude knows <i>everything it has</i> without paying to load every full file.</li>
+          <li><b>It keeps recall fast and cheap.</b> Claude scans the index, then opens only the handful of entries that matter, instead of dumping the whole trove into the prompt.</li>
+          <li><b>It is your map.</b> Human-readable, skimmable and prunable, like a notebook's table of contents you can edit by hand.</li>
+          <li><b>Hooks make it findable.</b> Each one-line entry is written to match intent, which is the difference between a pile of files and a memory you can actually use.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
   <!-- ───────── anatomy ───────── -->
   <section class="sec" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
-    <div class="eyebrow"><span class="n">03</span> Anatomy of an entry</div>
+    <div class="eyebrow"><span class="n">04</span> Anatomy of an entry</div>
     <h2>One fact, one file</h2>
     <div class="anatomy">
       <div class="filecard">
@@ -357,7 +473,7 @@ hiding query cost behind reflection.
 
   <!-- ───────── commands ───────── -->
   <section class="sec" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
-    <div class="eyebrow"><span class="n">04</span> Commands</div>
+    <div class="eyebrow"><span class="n">05</span> Commands</div>
     <h2>The whole surface</h2>
     <table>
       <thead><tr><th>Command</th><th>What it does</th></tr></thead>
