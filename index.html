@@ -53,6 +53,7 @@
     line-height:1.6;
     -webkit-font-smoothing:antialiased;
     overflow-x:hidden;
+    overflow-wrap:break-word;
     background-image:
       linear-gradient(to bottom, rgba(0,0,0,0) 0, rgba(0,0,0,0) 33px, rgba(47,111,106,.05) 34px),
       radial-gradient(130% 90% at 78% -8%, #fcf8ef 0%, var(--paper) 58%);
@@ -184,9 +185,9 @@
   .tabbtn:hover{ color:var(--ink); border-color:var(--ink-faint); }
   .tabbtn.on{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
   .cmd{ position:relative; background:#161b26; border-radius:12px; padding:17px 18px; margin:10px 0;
-    border:1px solid #20283a; box-shadow:0 10px 30px -16px rgba(28,34,48,.6); }
+    border:1px solid #20283a; box-shadow:0 10px 30px -16px rgba(28,34,48,.6); min-width:0; max-width:100%; }
   .cmd pre{ font-family:"IBM Plex Mono", monospace; font-size:13.5px; color:#e8e2d4; overflow-x:auto;
-    line-height:1.9; padding-right:74px; }
+    line-height:1.9; padding-right:74px; max-width:100%; }
   .cmd .prompt{ color:#f6a07a; user-select:none; }
   .cmd .muted{ color:#7c869c; }
   .copy{ position:absolute; top:10px; right:10px; font-family:"IBM Plex Mono", monospace; font-size:10.5px;
@@ -200,6 +201,7 @@
   /* numbered install steps */
   .steps{ list-style:none; margin-top:10px; }
   .step-row{ display:grid; grid-template-columns:32px 1fr; gap:16px; padding:20px 0; border-top:1px solid var(--line); }
+  .step-main{ min-width:0; }
   .step-row:first-child{ border-top:none; padding-top:8px; }
   .step-num{ width:32px; height:32px; border-radius:50%; background:var(--ink); color:var(--paper);
     font-family:"Fraunces", serif; font-size:1.05rem; display:flex; align-items:center; justify-content:center; flex:none; }
