@@ -14,6 +14,15 @@ add_trove() {
 ## Trove: ${pretty} (${count} entries)
 $(cat "$dir/INDEX.md" 2>/dev/null)
 "
+    # Validation report left by the previous session's end (SessionEnd hook).
+    if [ -f "$dir/.audit/last-validation.md" ]; then
+      emit="${emit}
+### Trove validation report (from last session end)
+$(head -n 30 "$dir/.audit/last-validation.md" 2>/dev/null)
+
+Resolve these with /trove:audit before trusting the entries involved.
+"
+    fi
   fi
 }
 
