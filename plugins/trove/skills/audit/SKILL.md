@@ -25,7 +25,9 @@ findings.
    It checks that every index line points at a real file, every top-level entry is
    indexed, markdown frontmatter is complete (title, slug matching filename, type,
    created), and JSON entries parse with their required keys. Fix everything it
-   lists; these are structural and need no judgment. Rerun until clean.
+   lists; these are structural and need no judgment. Rerun until clean. If the
+   script is missing (skills copied manually without the plugin), perform the same
+   checks yourself, mechanically, in that order, before moving on.
 
 3. **Tier 2, semantic, by subagent.** Dispatch a read-only subagent briefed with the
    trove path and scope (default: whole trove; the user's argument narrows it). Its

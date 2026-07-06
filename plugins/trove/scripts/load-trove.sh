@@ -16,9 +16,16 @@ $(cat "$dir/INDEX.md" 2>/dev/null)
 "
     # Validation report left by the previous session's end (SessionEnd hook).
     if [ -f "$dir/.audit/last-validation.md" ]; then
+      report="$dir/.audit/last-validation.md"
+      report_lines=$(wc -l < "$report" | tr -d ' ')
+      truncated=""
+      if [ "$report_lines" -gt 30 ]; then
+        truncated="
+[report truncated: 30 of ${report_lines} lines shown. Read ${report} for the rest.]"
+      fi
       emit="${emit}
 ### Trove validation report (from last session end)
-$(head -n 30 "$dir/.audit/last-validation.md" 2>/dev/null)
+$(head -n 30 "$report" 2>/dev/null)${truncated}
 
 Resolve these with /trove:audit before trusting the entries involved.
 "

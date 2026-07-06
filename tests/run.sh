@@ -102,6 +102,15 @@ grep -v -e 'entries/ghost.md' -e 'entries/bad.json' "$TMP/proj/.claude/trove/IND
 ( cd "$TMP/proj" && HOME="$TMP/nohome" bash "$SCRIPTS/session-end.sh" )
 if [ ! -f "$TMP/proj/.claude/trove/.audit/last-validation.md" ]; then ok "clean session end clears stale report"; else fail "clean session end clears stale report"; fi
 
+echo "- validator tolerance (regression) -"
+# Trailing spaces, tabs after the colon, and index anchor links are not defects.
+printf -- '---\ntitle: Space case\nslug: space-case\ntype: gotcha\ncreated: 2026-07-01 \ntags:\t[x]\n---\n\nBody.\n' > "$TMP/proj/.claude/trove/entries/space-case.md"
+echo "- [Space case](entries/space-case.md) - whitespace variants" >> "$TMP/proj/.claude/trove/INDEX.md"
+echo "- [Deploy gotcha, anchored](entries/deploy-gotcha.md#why) - anchor link" >> "$TMP/proj/.claude/trove/INDEX.md"
+( cd "$TMP/proj" && bash "$SCRIPTS/validate-trove.sh" > out.txt 2>&1 )
+rc=$?
+if [ "$rc" -eq 0 ]; then ok "whitespace + anchor links -> still clean"; else fail "whitespace + anchor links -> still clean (rc=$rc)"; sed 's/^/    /' "$TMP/proj/out.txt"; fi
+
 echo "- load-trove.sh basics -"
 mkdir -p "$TMP/empty"
 ( cd "$TMP/empty" && HOME="$TMP/nohome" bash "$SCRIPTS/load-trove.sh" > out.txt 2>&1 )
