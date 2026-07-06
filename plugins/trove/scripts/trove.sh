@@ -4,10 +4,11 @@
 # for the boring parts and lets manual (non-plugin) users script the trove too.
 #
 # Usage:
-#   trove.sh path   [--user|--project]   print the resolved trove directory
-#   trove.sh init   [--user|--project]   scaffold trove dir + INDEX.md
-#   trove.sh list                        print the index
-#   trove.sh grep <term>                 search entries
+#   trove.sh path     [--user|--project]   print the resolved trove directory
+#   trove.sh init     [--user|--project]   scaffold trove dir + INDEX.md
+#   trove.sh list                          print the index
+#   trove.sh grep <term>                   search entries
+#   trove.sh validate [--user|--project]   deterministic lint of the trove
 #
 # Resolution: --project -> ./.claude/trove, --user -> ~/.claude/trove.
 # With no flag: an existing project trove wins, else the user trove.
@@ -66,8 +67,12 @@ case "$cmd" in
     if [ -z "$term" ]; then echo "usage: trove.sh grep <term>"; exit 2; fi
     grep -rin --include='*.md' --include='*.json' "$term" "$dir/entries" 2>/dev/null || echo "No matches."
     ;;
+  validate)
+    dir="$(resolve "${1:-}")"
+    exec bash "$(dirname "$0")/validate-trove.sh" "$dir"
+    ;;
   *)
-    echo "usage: trove.sh {path|init|list|grep} [--user|--project]"
+    echo "usage: trove.sh {path|init|list|grep|validate} [--user|--project]"
     exit 2
     ;;
 esac

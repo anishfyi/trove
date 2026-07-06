@@ -29,7 +29,7 @@ points Claude Code at Trove's repo. Nothing is installed yet.
 > Hit an SSH `Permission denied (publickey)` error? You have no SSH key on GitHub, so use the HTTPS
 > URL instead: `/plugin marketplace add https://github.com/anishfyi/trove.git`
 
-**2. Install the plugin.** Pulls the Trove plugin (its three skills plus the SessionStart hook) from
+**2. Install the plugin.** Pulls the Trove plugin (its four skills plus the session hooks) from
 that marketplace. Read it as `plugin@marketplace`.
 
 ```
@@ -60,8 +60,9 @@ git clone https://github.com/anishfyi/trove /tmp/trove
 cp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/
 ```
 
-This gives you `/init`, `/remember`, and `/recall`. The automatic session-load hook ships only with
-the plugin install above.
+This gives you `/init`, `/remember`, `/recall`, and `/audit`. The automatic session hooks (index
+load at start, validation at end) ship only with the plugin install above, and `/audit`'s
+deterministic tier expects the plugin's scripts; manually copied, it falls back to the checklist.
 
 ---
 
@@ -72,10 +73,18 @@ the plugin install above.
 | `/trove:init` | Create the trove at user scope (`~/.claude/trove`) or project scope (`./.claude/trove`). |
 | `/trove:remember` | Distill a durable learning into one atomic entry and add it to the index. |
 | `/trove:recall` | Search the trove and answer grounded in the relevant entries. |
+| `/trove:audit` | Validate the trove: a deterministic script checks structure, then a subagent checks the entries themselves (contradictions, duplicates, claims that no longer hold). |
 
 The skills also auto-trigger on intent: say "remember this in my trove" or "what do I know about X"
 and the right skill fires without typing the command. Every new session, the SessionStart hook loads
-your `INDEX.md` into context so Claude starts aware of what it already knows.
+your `INDEX.md` into context so Claude starts aware of what it already knows (and re-loads it after
+`/clear` and context compaction, the exact moments memory would otherwise vanish).
+
+A memory that is never checked drifts into fiction, so the trove validates itself: a SessionEnd hook
+lints the trove as each session closes and leaves any findings in `.audit/last-validation.md`, which
+the next session surfaces and `/trove:audit` resolves. The semantic half of the audit runs in a
+subagent, never in the context that wrote the entries: a writer certifying its own writing is how
+stale memory survives.
 
 ---
 
@@ -184,12 +193,17 @@ trove/
 │       ├── skills/
 │       │   ├── init/SKILL.md
 │       │   ├── remember/SKILL.md
-│       │   └── recall/SKILL.md
+│       │   ├── recall/SKILL.md
+│       │   └── audit/SKILL.md
 │       ├── hooks/
-│       │   └── hooks.json         # SessionStart: load the index
+│       │   └── hooks.json         # SessionStart: load the index; SessionEnd: validate
 │       └── scripts/
-│           ├── load-trove.sh      # hook body (read-only, defensive)
-│           └── trove.sh           # tiny CLI helper (path/init/list/grep)
+│           ├── load-trove.sh      # SessionStart body (read-only, defensive)
+│           ├── session-end.sh     # SessionEnd body: lint, leave report for next session
+│           ├── validate-trove.sh  # deterministic trove lint (also: trove.sh validate)
+│           └── trove.sh           # tiny CLI helper (path/init/list/grep/validate)
+├── tests/
+│   └── run.sh                     # test suite (runs in CI)
 ├── index.html                     # AlpineJS landing page
 ├── PRD.md                         # product requirements
 ├── ENGINEERING.md                 # engineering design
