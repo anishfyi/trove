@@ -49,12 +49,19 @@ note() { NOTES="${NOTES}- $1
 "; }
 
 frontmatter_field() { # file key -> value
+  # Tolerant of CRLF line endings, tabs or extra spaces after the colon, and
+  # trailing whitespace on the value: none of those make a fact false.
   awk -v key="$2" '
+    { sub(/\r$/, "") }
     NR==1 && $0!="---" { exit }
     NR>1 && $0=="---" { exit }
     NR>1 {
-      prefix = key ": "
-      if (index($0, prefix) == 1) { print substr($0, length(prefix)+1); exit }
+      if (match($0, "^" key ":[ \t]*")) {
+        val = substr($0, RLENGTH + 1)
+        gsub(/[ \t]+$/, "", val)
+        print val
+        exit
+      }
     }
   ' "$1"
 }
@@ -72,10 +79,12 @@ json_ok() { # file -> 0 if parseable, 1 if not, 2 if no checker available
 }
 
 # Every index line must point at an existing file (entries can be nested,
-# e.g. entries/<dir>/00-README.md, so check any depth).
+# e.g. entries/<dir>/00-README.md, so check any depth). Anchor on the
+# markdown-link form and strip any #fragment; tr -d would mangle
+# paren-bearing names.
 while IFS= read -r target; do
   [ -e "$TROVE/$target" ] || issue "INDEX.md links to missing file: $target"
-done < <(grep -o '(entries/[^)]*)' "$TROVE/INDEX.md" 2>/dev/null | tr -d '()')
+done < <(grep -o '](entries/[^)]*)' "$TROVE/INDEX.md" 2>/dev/null | sed 's/^](//; s/)$//; s/#.*$//')
 
 # Top-level entries must be indexed and well-formed. Files nested deeper are
 # parts of a multi-file entry; only their indexed root is checked.
@@ -88,7 +97,7 @@ for f in "$TROVE/entries"/*.md "$TROVE/entries"/*.json; do
 
   case "$f" in
     *.md)
-      if [ "$(head -n 1 "$f")" != "---" ]; then
+      if [ "$(head -n 1 "$f" | tr -d '\r')" != "---" ]; then
         issue "entries/$base: no frontmatter block"
         continue
       fi
@@ -128,7 +137,7 @@ for f in "$TROVE/entries"/*.md; do
     if [ ! -e "$TROVE/entries/$slug.md" ] && [ ! -e "$TROVE/entries/$slug.json" ] && [ ! -d "$TROVE/entries/$slug" ]; then
       note "entries/$base: [[${slug}]] not written yet"
     fi
-  done < <(grep -o '\[\[[a-z0-9-]*\]\]' "$f" 2>/dev/null)
+  done < <(grep -o '\[\[[a-z0-9-][a-z0-9-]*\]\]' "$f" 2>/dev/null)
 done
 
 status=0
