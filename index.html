@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Trove - a personal memory index for Claude Code</title>
-<meta name="description" content="The semantic memory layer for Claude Code. A personal, file-based trove of your decisions, gotchas and references (Markdown or JSON), auto-loaded into context every session." />
+<title>Trove — Beyond context windows</title>
+<meta name="description" content="Repository memory engine + Claude Code plugin. Index symbols, retrieve progressively, and keep durable engineering decisions across sessions." />
 <link rel="icon" type="image/svg+xml" href="logo.svg" />
 <link rel="apple-touch-icon" href="logo.svg" />
 <meta name="theme-color" content="#f5f0e6" />
 <meta name="color-scheme" content="light" />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="Trove - the semantic memory layer for Claude Code" />
-<meta property="og:description" content="Install once and Claude Code keeps a personal, file-based trove of your decisions, gotchas and references (Markdown or JSON), and reloads it into context every session." />
+<meta property="og:title" content="Trove — Beyond context windows" />
+<meta property="og:description" content="Index any repository into layered memory. Retrieve only what matters. Capture decisions that survive sessions." />
 <meta property="og:image" content="https://anishfyi.github.io/trove/logo.svg" />
 <meta property="og:url" content="https://anishfyi.github.io/trove/" />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="Trove - the semantic memory layer for Claude Code" />
-<meta name="twitter:description" content="A personal, file-based memory index for Claude Code. Markdown or JSON entries, auto-loaded every session." />
+<meta name="twitter:title" content="Trove — Beyond context windows" />
+<meta name="twitter:description" content="Repository memory engine + Claude Code plugin. Higher information density, not larger prompts." />
 <meta name="twitter:image" content="https://anishfyi.github.io/trove/logo.svg" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -296,29 +296,62 @@
             <circle class="seed" cx="12" cy="5" r="1.8" fill="#d83a22"/>
           </g>
         </svg>
-        <span>Trove</span><span class="sep">·</span><span class="who">A Claude Code skill</span>
+        <span>Trove</span><span class="sep">·</span><span class="who">v0.2</span>
         <span class="rule"></span>
       </div>
       <h1 class="wordmark">Trove<span class="seed">.</span></h1>
-      <p class="lede">A memory index that grows as you use Claude Code.</p>
+      <p class="lede">Higher information density, not larger prompts.</p>
       <p class="sub">
-        Install once and Claude starts keeping a <b>personal, file-based trove</b> of your
-        decisions, gotchas, conventions and references. Every fact is one file, <b>Markdown or
-        JSON</b>, and it <b>reloads into context at the start of every session</b> so nothing
-        learned gets forgotten.
+        Trove makes LLMs operate over repositories far larger than their context window.
+        The <b>Rust engine</b> indexes symbols, modules, and architecture into <code>.trove/</code>.
+        The <b>Claude Code plugin</b> captures decisions, gotchas, and conventions in a personal
+        trove that <b>reloads every session</b>.
       </p>
       <div class="hero-cta">
-        <a class="btn-primary" href="#install">Install it</a>
-        <a class="btn-ghost" href="https://github.com/anishfyi/trove">View on GitHub</a>
+        <a class="btn-primary" href="#engine">Try the engine</a>
+        <a class="btn-ghost" href="#install">Install plugin</a>
+        <a class="btn-ghost" href="https://github.com/anishfyi/trove/releases/tag/v0.2.0">v0.2.0 release</a>
       </div>
     </div>
 
 
   </header>
 
+  <!-- ───────── engine ───────── -->
+  <section class="sec" id="engine" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
+    <div class="eyebrow"><span class="n">01</span> Engine</div>
+    <h2>Index any repository</h2>
+    <p class="lead-p">
+      The Trove engine parses your codebase into a memory hierarchy: symbols, per-file module
+      summaries, subsystem clusters, and an architecture map. Retrieval flows top-down and stops
+      when it has enough detail.
+    </p>
+    <div class="cmd">
+      <button class="copy" :class="{done: copied==='e1'}" @click="copy('e1', engineCmd)" x-text="copied==='e1' ? 'Copied' : 'Copy'"></button>
+      <pre><span class="muted"># requires Rust</span>
+git clone https://github.com/anishfyi/trove && cd trove
+cargo build -p trove-cli
+cargo run -p trove-cli -- index
+cargo run -p trove-cli -- query "modify vendor onboarding"</pre>
+    </div>
+    <div class="grid" style="margin-top:18px">
+      <div class="card">
+        <div class="step">L1–L4</div>
+        <h3>Memory layers</h3>
+        <p>Symbols, modules, subsystems, architecture. Hash-tracked, incremental rebuilds. Output in <code>.trove/</code> (gitignored).</p>
+      </div>
+      <div class="card">
+        <div class="step">RETRIEVE</div>
+        <h3>Progressive context</h3>
+        <p>Query with natural language. Get architecture first, then drill into modules and symbols only if needed. Respects a context budget.</p>
+      </div>
+    </div>
+    <p class="note" style="margin-top:14px">See <a href="VISION.md">VISION.md</a> for the full L0–L6 design.</p>
+  </section>
+
   <!-- ───────── install ───────── -->
   <section class="sec" id="install" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
-    <div class="eyebrow"><span class="n">01</span> Install</div>
+    <div class="eyebrow"><span class="n">02</span> Plugin</div>
     <h2>Add it to Claude Code</h2>
 
     <div class="tabs">
@@ -358,8 +391,9 @@
               <pre><span class="prompt">/plugin</span> install trove@anishfyi-trove</pre>
             </div>
             <p class="step-detail">
-              Pulls the Trove plugin from that marketplace: its three skills (<code>init</code>,
-              <code>remember</code>, <code>recall</code>) plus the SessionStart hook. Read it as
+              Pulls the Trove plugin from that marketplace: five skills (<code>init</code>,
+              <code>remember</code>, <code>recall</code>, <code>index</code>, <code>query</code>) plus
+              SessionStart and SessionEnd hooks. Read it as
               <b>plugin@marketplace</b>, so <code>trove</code> is the plugin and <code>anishfyi-trove</code>
               is the marketplace you just added.
             </p>
@@ -420,35 +454,35 @@ cp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/</pre>
 
   <!-- ───────── how it works ───────── -->
   <section class="sec" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
-    <div class="eyebrow"><span class="n">02</span> How it works</div>
-    <h2>Four moves, one growing index</h2>
+    <div class="eyebrow"><span class="n">03</span> How it works</div>
+    <h2>Two layers, one system</h2>
     <div class="grid">
       <div class="card">
-        <div class="step">STEP 01</div>
-        <h3>Start it <code>/trove:init</code></h3>
-        <p>Scaffolds a trove at user scope (<code>~/.claude/trove</code>) or per project. Just markdown: an <code>INDEX.md</code> and an <code>entries/</code> folder.</p>
+        <div class="step">ENGINE</div>
+        <h3>Index <code>trove index</code></h3>
+        <p>Parses the repo into symbols, module summaries, subsystem clusters, and an architecture map. Stored in <code>.trove/</code>.</p>
       </div>
       <div class="card">
-        <div class="step">STEP 02</div>
-        <h3>Capture it <code>/trove:remember</code></h3>
-        <p>Distills a decision, gotcha, preference or reference into one atomic entry, the way a new leaf sprouts, and adds a one-line pointer to the index. Dedupes against what is already there.</p>
+        <div class="step">ENGINE</div>
+        <h3>Query <code>trove query</code></h3>
+        <p>Progressive retrieval: architecture, then subsystem, module, symbol. Stops when enough context is assembled.</p>
       </div>
       <div class="card">
-        <div class="step">STEP 03</div>
-        <h3>Recall it <code>/trove:recall</code></h3>
-        <p>Reads the index, opens the relevant entries, and answers grounded in them with citations, so past you can inform present you.</p>
+        <div class="step">PLUGIN</div>
+        <h3>Capture <code>/trove:remember</code></h3>
+        <p>Distills a decision, gotcha, or convention into one atomic entry and updates the index.</p>
       </div>
       <div class="card">
-        <div class="step">STEP 04</div>
+        <div class="step">PLUGIN</div>
         <h3>Auto-load <span style="font-style:italic;font-family:Newsreader,serif">every session</span></h3>
-        <p>A SessionStart hook injects your index into context the moment a session opens. Claude starts aware of what it already knows.</p>
+        <p>SessionStart injects your personal trove index. SessionEnd prompts reflection and re-index reminders.</p>
       </div>
     </div>
   </section>
 
   <!-- ───────── why it speeds you up ───────── -->
   <section class="sec" id="why" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
-    <div class="eyebrow"><span class="n">03</span> Why it matters</div>
+    <div class="eyebrow"><span class="n">04</span> Why it matters</div>
     <h2>Why it speeds you up</h2>
     <p class="lead-p">
       Every Claude Code session normally starts from zero: you re-explain the codebase, the
@@ -480,7 +514,7 @@ cp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/</pre>
 
   <!-- ───────── anatomy ───────── -->
   <section class="sec" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
-    <div class="eyebrow"><span class="n">04</span> Anatomy of an entry</div>
+    <div class="eyebrow"><span class="n">05</span> Anatomy of an entry</div>
     <h2>One fact, one file. Markdown or JSON.</h2>
     <p class="lead-p">
       Each entry is a single file, and Claude picks the format that fits what it is storing:
@@ -534,15 +568,19 @@ hiding query cost behind reflection.
 
   <!-- ───────── commands ───────── -->
   <section class="sec" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
-    <div class="eyebrow"><span class="n">05</span> Commands</div>
+    <div class="eyebrow"><span class="n">06</span> Commands</div>
     <h2>The whole surface</h2>
     <table>
       <thead><tr><th>Command</th><th>What it does</th></tr></thead>
       <tbody>
-        <tr><td><code>/trove:init</code></td><td>Create the trove (user or project scope).</td></tr>
+        <tr><td><code>trove index</code></td><td>Index the repo into memory layers (CLI).</td></tr>
+        <tr><td><code>trove query</code></td><td>Progressive retrieval with a context budget (CLI).</td></tr>
+        <tr><td><code>/trove:init</code></td><td>Create the personal trove (user or project scope).</td></tr>
         <tr><td><code>/trove:remember</code></td><td>Capture a durable learning as a new entry.</td></tr>
         <tr><td><code>/trove:recall</code></td><td>Search the trove and answer from it.</td></tr>
-        <tr><td><code>SessionStart hook</code></td><td>Loads the index into context automatically each session.</td></tr>
+        <tr><td><code>/trove:index</code></td><td>Index the repo via the engine (plugin skill).</td></tr>
+        <tr><td><code>/trove:query</code></td><td>Retrieve layered context before editing (plugin skill).</td></tr>
+        <tr><td><code>SessionStart hook</code></td><td>Loads the personal index into context each session.</td></tr>
       </tbody>
     </table>
     <p class="note">
@@ -554,17 +592,18 @@ hiding query cost behind reflection.
   <!-- ───────── footer ───────── -->
   <footer class="sec" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}" style="border-bottom:none">
     <div class="foot-logo"><img src="logo.svg" alt="" /><span class="foot-word">Trove</span></div>
-    <p class="foot-tag">The semantic memory layer for Claude Code.</p>
+    <p class="foot-tag">Beyond context windows.</p>
     <p class="stamp">Built by <b>anishfyi</b>.</p>
     <p class="madeby">
-      Backed by a written
-      <a href="PRD.md">Product Requirements Doc</a> and an
-      <a href="ENGINEERING.md">Engineering Design Doc</a>, both authored by anishfyi.
+      <a href="VISION.md">Vision</a> ·
+      <a href="PRD.md">PRD</a> ·
+      <a href="ENGINEERING.md">Engineering</a> ·
+      <a href="https://github.com/anishfyi/trove/releases/tag/v0.2.0">v0.2.0 release</a>
     </p>
     <div class="foot-links">
       <a class="pill" href="https://github.com/anishfyi/trove"><span class="ic">&#9733;</span> github.com/anishfyi/trove</a>
-      <a class="pill" href="PRD.md"><span class="ic">&#167;</span> PRD</a>
-      <a class="pill" href="ENGINEERING.md"><span class="ic">&#167;</span> Engineering Doc</a>
+      <a class="pill" href="VISION.md"><span class="ic">&#167;</span> Vision</a>
+      <a class="pill" href="https://github.com/anishfyi/trove/releases/tag/v0.2.0"><span class="ic">&#9733;</span> v0.2.0</a>
     </div>
   </footer>
 
@@ -578,6 +617,7 @@ hiding query cost behind reflection.
       // ── install ──
       tab: 'plugin',
       copied: null,
+      engineCmd: "git clone https://github.com/anishfyi/trove && cd trove\ncargo build -p trove-cli\ncargo run -p trove-cli -- index\ncargo run -p trove-cli -- query \"modify vendor onboarding\"",
       plugins: "/plugin marketplace add https://github.com/anishfyi/trove.git\n/plugin install trove@anishfyi-trove",
       manual: "git clone https://github.com/anishfyi/trove /tmp/trove\ncp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/",
       copy(id, text){
