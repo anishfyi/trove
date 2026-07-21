@@ -1,173 +1,138 @@
 <p align="center"><img src="logo.svg" alt="Trove" width="88" height="88"></p>
 
-# Trove - a personal memory index for Claude Code
+# Trove
 
-**Install once, and Claude Code keeps a personal, file-based trove of your decisions, gotchas,
-conventions and references as you work, and reloads it into context at the start of every session.**
+**Beyond context windows.**
+
+Trove makes LLMs operate over repositories and knowledge bases far larger than their native context
+window. Not by stuffing more tokens into the prompt, but by indexing everything once and retrieving
+only what matters, at the right level of detail.
 
 Live page: **https://anishfyi.github.io/trove/**
 
-Every fact is one file, and Claude picks the format that fits it: **Markdown** for prose (decisions,
-gotchas, conventions) or **JSON** for structured context (mappings, lists, config, schemas). The
-trove is portable, greppable, diffable, and yours. No database, no service, no lock-in.
+---
+
+## Two layers, one system
+
+| Layer | What it is | Where it lives |
+|-------|-----------|----------------|
+| **Engine** | Symbol index, module/subsystem/architecture summaries, dependency graph, progressive retrieval | `.trove/` in any repo (Rust CLI) |
+| **Plugin** | Personal engineering memory: decisions, gotchas, conventions | `~/.claude/trove` or `./.claude/trove` (Claude Code) |
+
+The engine answers "what is in this codebase and where?" The plugin answers "what did we decide and
+why?" Together they give Claude both structural repo knowledge and durable session memory.
+
+See [VISION.md](VISION.md) for the full memory hierarchy design (L0–L6).
 
 ---
 
-## Install
+## Quick start: engine
 
-### Plugin (recommended)
+Requires Rust. From any repository:
 
-Run these **one at a time** inside Claude Code, top to bottom.
+```bash
+git clone https://github.com/anishfyi/trove
+cd trove && cargo build -p trove-cli
 
-**1. Add the marketplace.** A marketplace is just a Git repo that lists installable plugins. This
-points Claude Code at Trove's repo. Nothing is installed yet.
+# Index the current repo (writes .trove/, gitignored)
+cargo run -p trove-cli -- index
+
+# Check what was indexed
+cargo run -p trove-cli -- status
+
+# Retrieve context for a task (architecture → subsystem → module → symbol)
+cargo run -p trove-cli -- query "modify vendor onboarding"
+```
+
+Other commands: `import-historical`, `record`, `patch`. Run `cargo run -p trove-cli -- --help` for
+the full list.
+
+### What gets indexed
+
+- **L1 Symbols** — functions, classes, structs, traits, tests (Rust, Python, JS/TS, Go, Bash)
+- **L2 Modules** — per-file summaries: exports, dependencies, assumptions, side effects
+- **L3 Subsystems** — package-level clusters
+- **L4 Architecture** — repo-wide design map and data flow
+- **L5 Historical** — imported from your Claude trove entries on demand
+
+Retrieval stops as soon as it has enough detail. Unused context budget is healthy.
+
+---
+
+## Quick start: Claude Code plugin
+
+Run these **one at a time** inside Claude Code:
+
+**1. Add the marketplace**
 
 ```
 /plugin marketplace add anishfyi/trove
 ```
 
-> Hit an SSH `Permission denied (publickey)` error? You have no SSH key on GitHub, so use the HTTPS
-> URL instead: `/plugin marketplace add https://github.com/anishfyi/trove.git`
+> SSH error? Use HTTPS: `/plugin marketplace add https://github.com/anishfyi/trove.git`
 
-**2. Install the plugin.** Pulls the Trove plugin (its three skills plus the SessionStart hook) from
-that marketplace. Read it as `plugin@marketplace`.
+**2. Install the plugin**
 
 ```
 /plugin install trove@anishfyi-trove
 ```
 
-**3. Reload so it activates.** A freshly installed plugin is **not live until you reload**. This
-activates the skills and hook in your current session (verify with `/plugin list`). The auto-load
-hook starts firing from your **next new session** onward.
+**3. Reload**
 
 ```
 /reload-plugins
 ```
 
-**4. Create your trove.** Scaffolds `~/.claude/trove` with an `INDEX.md` and an `entries/` folder.
+**4. Create your personal trove**
 
 ```
 /trove:init
 ```
 
-Done. From here, say "remember this" or run `/trove:remember` to capture, and `/trove:recall` to
-search it back.
+From here: `/trove:remember` to capture, `/trove:recall` to search, `/trove:index` to index the
+repo, `/trove:query` to retrieve layered context.
 
-### Manual (skills only, no auto-load hook)
+### Plugin commands
+
+| Command | What it does |
+|---------|--------------|
+| `/trove:init` | Scaffold `~/.claude/trove` or `./.claude/trove` |
+| `/trove:remember` | Capture one durable learning as an atomic entry |
+| `/trove:recall` | Search entries and answer with citations |
+| `/trove:index` | Index the repo into Trove memory layers |
+| `/trove:query` | Progressive retrieval with a context budget |
+
+Skills auto-trigger on intent: "remember this", "what do I know about X", "index this repo".
+
+Every session, the SessionStart hook loads your `INDEX.md` so Claude starts aware of past decisions.
+
+### Manual install (skills only, no hooks)
 
 ```bash
 git clone https://github.com/anishfyi/trove /tmp/trove
 cp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/
 ```
 
-This gives you `/init`, `/remember`, and `/recall`. The automatic session-load hook ships only with
-the plugin install above.
-
 ---
 
-## Usage
+## Personal trove format
 
-| Command | What it does |
-|---------|--------------|
-| `/trove:init` | Create the trove at user scope (`~/.claude/trove`) or project scope (`./.claude/trove`). |
-| `/trove:remember` | Distill a durable learning into one atomic entry and add it to the index. |
-| `/trove:recall` | Search the trove and answer grounded in the relevant entries. |
-
-The skills also auto-trigger on intent: say "remember this in my trove" or "what do I know about X"
-and the right skill fires without typing the command. Every new session, the SessionStart hook loads
-your `INDEX.md` into context so Claude starts aware of what it already knows.
-
----
-
-## Why it speeds you up
-
-Every Claude Code session normally starts from zero: you re-explain the codebase, the conventions,
-the decisions you already made. Trove ends that. What you teach it once it knows for good, so each
-session begins further ahead than the last.
-
-**It paces up your work**
-
-- **Stop re-explaining.** Claude opens each session already aware of your decisions, conventions and
-  gotchas. No daily "here is how this repo works" preamble.
-- **Stop repeating mistakes.** A footgun you hit once is written down, so Claude does not walk into
-  it a second time.
-- **Decide faster.** Past decisions and their rationale are one recall away, so you do not
-  re-litigate or contradict yourself.
-- **Onboard instantly.** A new machine, or a teammate on a project-scope trove, inherits all the
-  accumulated knowledge at once.
-- **Compounding returns.** Teach it once, benefit every session after. The longer you use it, the
-  more leverage it has.
-
-**Why the index is the engine**
-
-The `INDEX.md` is the part that actually loads into context at session start, one compact line per
-entry, so Claude knows *everything it has* without paying to load every full file. Recall stays fast
-and cheap: Claude scans the index, then opens only the handful of entries that matter instead of
-dumping the whole trove into the prompt. It is also your human-readable map, skimmable and prunable
-like a notebook's table of contents, and each one-line hook is written to match intent. The index is
-the difference between a pile of files and a memory you can actually use.
-
----
-
-## What the trove looks like
-
-Each entry is one file. Claude picks the format by the shape of the content: **Markdown** for prose,
-**JSON** for structured data. The index lists both, side by side.
+Each entry is one file. Claude picks **Markdown** for prose or **JSON** for structured data.
 
 ```
 ~/.claude/trove/
 ├── INDEX.md                 # one line per entry, newest first
 └── entries/
-    ├── use-pgx-not-orm.md   # prose      -> Markdown
-    ├── service-ports.json   # structured -> JSON
+    ├── use-pgx-not-orm.md
+    ├── service-ports.json
     └── staging-db-mirror.md
 ```
 
-A **Markdown** entry (prose: decisions, gotchas, conventions):
+Entry types: `decision`, `gotcha`, `preference`, `reference`, `project`, `snippet`.
 
-```markdown
----
-title: Use pgx + sqlc, not a heavy ORM, in Go services
-slug: use-pgx-not-orm
-type: decision
-created: 2026-06-13
-tags: [go, postgres, data-layer]
----
+**Save:** decisions and rationale, gotchas, conventions, external references, non-obvious constraints.
 
-We standardised on pgx for the driver and sqlc to generate type-safe query code
-from plain SQL. GORM was rejected for hiding query cost behind reflection.
-
-**Why it matters:** reach for this on any new Go service.
-**Related:** [[deploy-single-binary]]
-```
-
-A **JSON** entry (structured context: mappings, lists, config, schemas, the payload lives under `data`):
-
-```json
-{
-  "title": "Local service ports",
-  "slug": "service-ports",
-  "type": "reference",
-  "created": "2026-06-14",
-  "tags": ["infra", "ports"],
-  "summary": "which service runs on which port",
-  "data": { "web": 8000, "trove-ui": 8010, "partners": 8011 }
-}
-```
-
-Both carry the same top-level fields (`title`, `slug`, `type`, `created`, `tags`). Entry `type` is one
-of: `decision`, `gotcha`, `preference`, `reference`, `project`, `snippet`.
-
----
-
-## What is worth remembering
-
-**Save:** decisions and their rationale, gotchas and footguns, conventions you expect Claude to
-follow, external references (URLs, dashboards, tickets), and project constraints that are not obvious
-from the code.
-
-**Skip:** secrets, transient task state, and anything trivially re-derivable from the codebase or
-git history. If a fact is one of those, capture what was *non-obvious* about it instead.
+**Skip:** secrets, transient state, anything trivially re-derivable from code or git history.
 
 ---
 
@@ -175,31 +140,27 @@ git history. If a fact is one of those, capture what was *non-obvious* about it 
 
 ```
 trove/
-├── .claude-plugin/
-│   └── marketplace.json          # lists the trove plugin
-├── plugins/
-│   └── trove/
-│       ├── .claude-plugin/
-│       │   └── plugin.json
-│       ├── skills/
-│       │   ├── init/SKILL.md
-│       │   ├── remember/SKILL.md
-│       │   └── recall/SKILL.md
-│       ├── hooks/
-│       │   └── hooks.json         # SessionStart: load the index
-│       └── scripts/
-│           ├── load-trove.sh      # hook body (read-only, defensive)
-│           └── trove.sh           # tiny CLI helper (path/init/list/grep)
-├── index.html                     # AlpineJS landing page
-├── PRD.md                         # product requirements
-├── ENGINEERING.md                 # engineering design
-└── LICENSE
+├── Cargo.toml                  # Rust workspace
+├── VISION.md                   # memory hierarchy design
+├── crates/
+│   ├── trove-core/             # MemoryObject, compression, L0-L6 types
+│   ├── trove-index/            # tree-sitter symbol index, dependency graph
+│   ├── trove-retrieve/         # progressive retrieval + context budget
+│   └── trove-cli/              # trove binary
+├── plugins/trove/
+│   ├── skills/                 # init, remember, recall, index, query
+│   ├── hooks/                  # SessionStart load + SessionEnd reflect
+│   └── scripts/                # load-trove.sh, reflect-trove.sh, trove.sh
+├── index.html                  # landing page
+├── PRD.md
+└── ENGINEERING.md
 ```
 
 ## Docs
 
-- [Product Requirements Doc](PRD.md)
-- [Engineering Design Doc](ENGINEERING.md)
+- [Vision: Beyond Context Windows](VISION.md)
+- [Product Requirements (v0.1 plugin)](PRD.md)
+- [Engineering Design](ENGINEERING.md)
 
 ---
 

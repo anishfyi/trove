@@ -1,7 +1,7 @@
 {
   "name": "trove",
-  "description": "Build and maintain a personal, file-based knowledge trove as you use Claude Code: capture durable decisions, gotchas, preferences and references as atomic entries, and reload the index automatically at the start of every session.",
-  "version": "0.1.0",
+  "description": "Repository memory for Claude Code: index symbols and architecture, progressively retrieve context beyond the context window, and capture durable engineering decisions in a personal trove.",
+  "version": "0.2.0",
   "author": {
     "name": "anishfyi"
   },
