@@ -1,0 +1,15 @@
+---
+description: Never use em-dashes or en-dashes in Trove repo content
+alwaysApply: true
+---
+
+# No em-dashes
+
+Never use em-dashes (U+2014) or en-dashes (U+2013) anywhere in this repository.
+
+Use instead:
+- Hyphen `-` for compound words and ranges (e.g. `L0-L6`, `v0.2.0`)
+- Colon `:` after labels (e.g. `**L1 Symbols**: functions`)
+- Commas or periods for clause breaks
+
+This applies to README, docs, site copy, comments, commit messages, and PR text.
