@@ -72,6 +72,8 @@ the plugin install above.
 | `/trove:init` | Create the trove at user scope (`~/.claude/trove`) or project scope (`./.claude/trove`). |
 | `/trove:remember` | Distill a durable learning into one atomic entry and add it to the index. |
 | `/trove:recall` | Search the trove and answer grounded in the relevant entries. |
+| `/trove:index` | Index the repository into Trove memory layers (symbols, modules, subsystems, architecture). |
+| `/trove:query` | Progressive retrieval: architecture → subsystem → module → symbol. |
 
 The skills also auto-trigger on intent: say "remember this in my trove" or "what do I know about X"
 and the right skill fires without typing the command. Every new session, the SessionStart hook loads
@@ -106,6 +108,43 @@ and cheap: Claude scans the index, then opens only the handful of entries that m
 dumping the whole trove into the prompt. It is also your human-readable map, skimmable and prunable
 like a notebook's table of contents, and each one-line hook is written to match intent. The index is
 the difference between a pile of files and a memory you can actually use.
+
+---
+
+## Trove engine (v0.2)
+
+Beyond the Claude Code plugin, Trove ships a Rust indexing engine that implements the
+[memory hierarchy vision](VISION.md): symbols, modules, subsystems, architecture, progressive
+retrieval, and context budgets.
+
+```bash
+# Build the CLI
+cargo build -p trove-cli
+
+# Index the current repo (writes .trove/, gitignored)
+cargo run -p trove-cli -- index
+
+# Check status
+cargo run -p trove-cli -- status
+
+# Progressive retrieval
+cargo run -p trove-cli -- query "modify vendor onboarding"
+
+# Import L5 entries from ~/.claude/trove
+cargo run -p trove-cli -- import-historical
+```
+
+### Workspace layout
+
+```
+crates/
+├── trove-core/       # MemoryObject, compression tiers, L0-L6 hierarchy
+├── trove-index/      # Symbol parser (tree-sitter), dependency graph, indexer
+├── trove-retrieve/   # Progressive retrieval pipeline + context budget
+└── trove-cli/        # trove index | status | query | import-historical
+```
+
+See [VISION.md](VISION.md) for the full design.
 
 ---
 
@@ -175,6 +214,13 @@ git history. If a fact is one of those, capture what was *non-obvious* about it 
 
 ```
 trove/
+├── Cargo.toml                      # Rust workspace (trove engine)
+├── VISION.md                       # Memory hierarchy design doc
+├── crates/
+│   ├── trove-core/
+│   ├── trove-index/
+│   ├── trove-retrieve/
+│   └── trove-cli/
 ├── .claude-plugin/
 │   └── marketplace.json          # lists the trove plugin
 ├── plugins/
@@ -184,20 +230,25 @@ trove/
 │       ├── skills/
 │       │   ├── init/SKILL.md
 │       │   ├── remember/SKILL.md
-│       │   └── recall/SKILL.md
+│       │   ├── recall/SKILL.md
+│       │   ├── index/SKILL.md
+│       │   └── query/SKILL.md
 │       ├── hooks/
 │       │   └── hooks.json         # SessionStart: load the index
 │       └── scripts/
 │           ├── load-trove.sh      # hook body (read-only, defensive)
+│           ├── reflect-trove.sh   # SessionEnd reflection prompt
 │           └── trove.sh           # tiny CLI helper (path/init/list/grep)
 ├── index.html                     # AlpineJS landing page
-├── PRD.md                         # product requirements
+├── PRD.md                         # product requirements (v0.1 plugin)
+├── VISION.md                      # memory hierarchy vision (v0.2 engine)
 ├── ENGINEERING.md                 # engineering design
 └── LICENSE
 ```
 
 ## Docs
 
+- [Vision: Beyond Context Windows](VISION.md)
 - [Product Requirements Doc](PRD.md)
 - [Engineering Design Doc](ENGINEERING.md)
 
