@@ -22,7 +22,7 @@ Live page: **https://anishfyi.github.io/trove/**
 The engine answers "what is in this codebase and where?" The plugin answers "what did we decide and
 why?" Together they give Claude both structural repo knowledge and durable session memory.
 
-See [VISION.md](VISION.md) for the full memory hierarchy design (L0–L6).
+See [VISION.md](VISION.md) for the full memory hierarchy design (L0-L6).
 
 ---
 
@@ -49,11 +49,11 @@ the full list.
 
 ### What gets indexed
 
-- **L1 Symbols** — functions, classes, structs, traits, tests (Rust, Python, JS/TS, Go, Bash)
-- **L2 Modules** — per-file summaries: exports, dependencies, assumptions, side effects
-- **L3 Subsystems** — package-level clusters
-- **L4 Architecture** — repo-wide design map and data flow
-- **L5 Historical** — imported from your Claude trove entries on demand
+- **L1 Symbols**: functions, classes, structs, traits, tests (Rust, Python, JS/TS, Go, Bash)
+- **L2 Modules**: per-file summaries: exports, dependencies, assumptions, side effects
+- **L3 Subsystems**: package-level clusters
+- **L4 Architecture**: repo-wide design map and data flow
+- **L5 Historical**: imported from your Claude trove entries on demand
 
 Retrieval stops as soon as it has enough detail. Unused context budget is healthy.
 
