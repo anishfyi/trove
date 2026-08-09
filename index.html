@@ -3,21 +3,137 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Trove - Beyond context windows</title>
-<meta name="description" content="Repository memory engine + Claude Code plugin. Index symbols, retrieve progressively, and keep durable engineering decisions across sessions." />
+<title>Trove: repository memory that beats the context window</title>
+<!-- seo:anishfyi -->
+<meta name="description" content="Trove indexes a repository once into symbols, modules, subsystems and an architecture map, then retrieves only what a task needs. A Claude Code plugin adds durable memory for decisions and gotchas.">
+<meta name="author" content="Anish Kr Singh">
+<link rel="canonical" href="https://anishfyi.com/trove/">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="anishfyi">
+<meta property="og:locale" content="en_IN">
+<meta property="og:url" content="https://anishfyi.com/trove/">
+<meta property="og:title" content="Trove: repository memory that beats the context window">
+<meta property="og:description" content="Make an LLM work over repositories far larger than its context window: index everything once, retrieve only what matters, at the right level of detail.">
+<meta property="og:image" content="https://anishfyi.com/trove/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Trove, beyond context windows">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Trove: repository memory that beats the context window">
+<meta name="twitter:description" content="Make an LLM work over repositories far larger than its context window: index everything once, retrieve only what matters, at the right level of detail.">
+<meta name="twitter:image" content="https://anishfyi.com/trove/og.png">
+<meta name="twitter:image:alt" content="Trove, beyond context windows">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://anishfyi.com/trove/#webpage",
+      "url": "https://anishfyi.com/trove/",
+      "name": "Trove: repository memory that beats the context window",
+      "description": "Trove indexes a repository once into symbols, modules, subsystems and an architecture map, then retrieves only what a task needs. A Claude Code plugin adds durable memory for decisions and gotchas.",
+      "inLanguage": "en",
+      "isPartOf": {
+        "@id": "https://anishfyi.com/#website"
+      },
+      "about": {
+        "@id": "https://anishfyi.com/trove/#software"
+      },
+      "primaryImageOfPage": "https://anishfyi.com/trove/og.png",
+      "author": {
+        "@id": "https://anishfyi.com/#person"
+      },
+      "breadcrumb": {
+        "@id": "https://anishfyi.com/trove/#breadcrumb"
+      }
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://anishfyi.com/trove/#software",
+      "name": "Trove",
+      "url": "https://anishfyi.com/trove/",
+      "description": "Trove indexes a repository once into symbols, modules, subsystems and an architecture map, then retrieves only what a task needs. A Claude Code plugin adds durable memory for decisions and gotchas.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "macOS, Linux",
+      "author": {
+        "@id": "https://anishfyi.com/#person"
+      },
+      "publisher": {
+        "@id": "https://anishfyi.com/#person"
+      },
+      "image": "https://anishfyi.com/trove/og.png",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "The engine indexes into five levels: L1 symbols, L2 per-file module summaries, L3 subsystem clusters, L4 a repo-wide architecture and data-flow map, and L5 imported historical entries.",
+        "Symbols are extracted for Rust, Python, JavaScript and TypeScript, Go and Bash.",
+        "Retrieval stops as soon as it has enough detail, so unused context budget is treated as healthy rather than wasted.",
+        "The engine writes to `.trove/` in any repository and is driven by a Rust CLI with `index`, `status`, `query`, `import-historical`, `record` and `patch`.",
+        "The Claude Code plugin stores personal engineering memory (decisions, gotchas, conventions) in `~/.claude/trove` or `./.claude/trove`, captured with `/trove:remember` and searched with `/trove:recall`.",
+        "MIT licensed, current version 0.2.0."
+      ],
+      "softwareVersion": "0.2.0",
+      "license": "https://opensource.org/licenses/MIT",
+      "programmingLanguage": "Rust",
+      "codeRepository": "https://github.com/anishfyi/trove",
+      "sameAs": [
+        "https://github.com/anishfyi/trove"
+      ]
+    },
+    {
+      "@type": "SoftwareSourceCode",
+      "@id": "https://anishfyi.com/trove/#source",
+      "name": "Trove",
+      "codeRepository": "https://github.com/anishfyi/trove",
+      "programmingLanguage": "Rust",
+      "author": {
+        "@id": "https://anishfyi.com/#person"
+      },
+      "about": {
+        "@id": "https://anishfyi.com/trove/#software"
+      },
+      "description": "Two layers: a Rust engine that indexes what is in a codebase, and a Claude Code plugin that remembers what you decided."
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://anishfyi.com/trove/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "anishfyi",
+          "item": "https://anishfyi.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Projects",
+          "item": "https://anishfyi.com/projects/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Trove",
+          "item": "https://anishfyi.com/trove/"
+        }
+      ]
+    }
+  ]
+}
+</script>
+<!-- /seo:anishfyi -->
 <link rel="icon" type="image/svg+xml" href="logo.svg" />
 <link rel="apple-touch-icon" href="logo.svg" />
 <meta name="theme-color" content="#f5f0e6" />
 <meta name="color-scheme" content="light" />
-<meta property="og:type" content="website" />
-<meta property="og:title" content="Trove - Beyond context windows" />
-<meta property="og:description" content="Index any repository into layered memory. Retrieve only what matters. Capture decisions that survive sessions." />
-<meta property="og:image" content="https://anishfyi.github.io/trove/logo.svg" />
-<meta property="og:url" content="https://anishfyi.github.io/trove/" />
-<meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="Trove - Beyond context windows" />
-<meta name="twitter:description" content="Repository memory engine + Claude Code plugin. Higher information density, not larger prompts." />
-<meta name="twitter:image" content="https://anishfyi.github.io/trove/logo.svg" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
