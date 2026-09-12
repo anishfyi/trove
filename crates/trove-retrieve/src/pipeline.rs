@@ -318,7 +318,7 @@ pub fn import_historical(store: &TroveStore, trove_dir: &std::path::Path) -> any
                 "imported from Claude trove entries",
                 vec!["import".into(), slug],
             ));
-            store.write_objects(MemoryKind::Historical, std::slice::from_ref(&obj))?;
+            store.upsert_objects(std::slice::from_ref(&obj))?;
             imported += 1;
         }
     }
@@ -328,7 +328,7 @@ pub fn import_historical(store: &TroveStore, trove_dir: &std::path::Path) -> any
     let mut repo_obj = MemoryObject::new("repository:index", MemoryKind::Repository, hash);
     repo_obj.text = trove_core::compression::CompressedText::from_raw(index);
     repo_obj.text.compress_heuristic();
-    store.write_objects(MemoryKind::Repository, std::slice::from_ref(&repo_obj))?;
+    store.upsert_objects(std::slice::from_ref(&repo_obj))?;
 
     Ok(imported)
 }

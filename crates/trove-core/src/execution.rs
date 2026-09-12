@@ -31,10 +31,10 @@ impl ExecutionMemory {
         for event in self.events.iter().rev().take(50) {
             match event {
                 ExecutionEvent::OpenedFile { path, .. }
-                | ExecutionEvent::ModifiedFile { path, .. } => {
-                    if !paths.contains(&path.as_str()) {
-                        paths.push(path.as_str());
-                    }
+                | ExecutionEvent::ModifiedFile { path, .. }
+                    if !paths.contains(&path.as_str()) =>
+                {
+                    paths.push(path.as_str());
                 }
                 _ => {}
             }

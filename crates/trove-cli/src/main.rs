@@ -138,20 +138,13 @@ fn main() -> Result<()> {
         }
         Commands::Record { event } => {
             let store = TroveStore::open(&cli.repo)?;
-            let mut memory = store.read_execution()?;
             let now = Utc::now();
-            match event {
-                RecordEvent::Open { path } => {
-                    memory.record(ExecutionEvent::OpenedFile { path, at: now });
-                }
-                RecordEvent::Search { query } => {
-                    memory.record(ExecutionEvent::Search { query, at: now });
-                }
-                RecordEvent::Command { cmd } => {
-                    memory.record(ExecutionEvent::Command { cmd, at: now });
-                }
-            }
-            store.write_execution(&memory)?;
+            let event = match event {
+                RecordEvent::Open { path } => ExecutionEvent::OpenedFile { path, at: now },
+                RecordEvent::Search { query } => ExecutionEvent::Search { query, at: now },
+                RecordEvent::Command { cmd } => ExecutionEvent::Command { cmd, at: now },
+            };
+            store.record_execution(&event)?;
             println!("Recorded execution event");
         }
         Commands::Patch {
