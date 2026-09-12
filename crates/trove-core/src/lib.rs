@@ -5,6 +5,7 @@ pub mod hierarchy;
 pub mod memory;
 pub mod object;
 pub mod patch;
+pub mod reflection;
 pub mod store;
 
 pub use compression::CompressionTier;
@@ -14,4 +15,7 @@ pub use hierarchy::MemoryLevel;
 pub use memory::Confidence;
 pub use object::{MemoryKind, MemoryObject};
 pub use patch::PatchRecord;
-pub use store::TroveStore;
+pub use reflection::{
+    EventSubmission, MemoryRecord, NewRecord, Provenance, RecordKind, RecordUpdate, ReflectionEvent,
+};
+pub use store::{MigrationReport, StoreError, TroveStore};

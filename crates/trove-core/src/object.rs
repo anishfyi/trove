@@ -20,6 +20,32 @@ pub enum MemoryKind {
 }
 
 impl MemoryKind {
+    pub const ALL: [Self; 9] = [
+        Self::Working,
+        Self::Symbol,
+        Self::Module,
+        Self::Subsystem,
+        Self::Architecture,
+        Self::Historical,
+        Self::Repository,
+        Self::Patch,
+        Self::Execution,
+    ];
+
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Working => "working",
+            Self::Symbol => "symbol",
+            Self::Module => "module",
+            Self::Subsystem => "subsystem",
+            Self::Architecture => "architecture",
+            Self::Historical => "historical",
+            Self::Repository => "repository",
+            Self::Patch => "patch",
+            Self::Execution => "execution",
+        }
+    }
+
     pub fn level(self) -> MemoryLevel {
         match self {
             Self::Working => MemoryLevel::L0Working,

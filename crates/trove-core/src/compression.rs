@@ -62,13 +62,7 @@ impl CompressedText {
                 .as_deref()
                 .or(self.summary.as_deref())
                 .or(self.raw.as_deref()),
-            CompressionTier::Keywords => {
-                if self.keywords.is_empty() {
-                    None
-                } else {
-                    None // keywords returned via keywords()
-                }
-            }
+            CompressionTier::Keywords => None, // keywords returned via keywords_line()
             CompressionTier::Embedding => None,
         }
     }
