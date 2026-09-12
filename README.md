@@ -8,7 +8,7 @@ Trove makes LLMs operate over repositories and knowledge bases far larger than t
 window. Not by stuffing more tokens into the prompt, but by indexing everything once and retrieving
 only what matters, at the right level of detail.
 
-Live page: **https://velofy.github.io/trove/**
+Live page: **https://anishfyi.com/trove/**
 
 ---
 
@@ -31,7 +31,7 @@ See [VISION.md](VISION.md) for the full memory hierarchy design (L0-L6).
 Requires Rust. From any repository:
 
 ```bash
-git clone https://github.com/velofy/trove
+git clone https://github.com/anishfyi/trove
 cd trove && cargo build -p trove-cli
 
 # Index the current repo (writes .trove/, gitignored)
@@ -66,10 +66,10 @@ Run these **one at a time** inside Claude Code:
 **1. Add the marketplace**
 
 ```
-/plugin marketplace add velofy/trove
+/plugin marketplace add anishfyi/trove
 ```
 
-> SSH error? Use HTTPS: `/plugin marketplace add https://github.com/velofy/trove.git`
+> SSH error? Use HTTPS: `/plugin marketplace add https://github.com/anishfyi/trove.git`
 
 **2. Install the plugin**
 
@@ -109,7 +109,7 @@ Every session, the SessionStart hook loads your `INDEX.md` so Claude starts awar
 ### Manual install (skills only, no hooks)
 
 ```bash
-git clone https://github.com/velofy/trove /tmp/trove
+git clone https://github.com/anishfyi/trove /tmp/trove
 cp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/
 ```
 
