@@ -12,12 +12,12 @@
 <meta property="og:type" content="website" />
 <meta property="og:title" content="Trove - Beyond context windows" />
 <meta property="og:description" content="Index any repository into layered memory. Retrieve only what matters. Capture decisions that survive sessions." />
-<meta property="og:image" content="https://velofy.github.io/trove/logo.svg" />
-<meta property="og:url" content="https://velofy.github.io/trove/" />
+<meta property="og:image" content="https://anishfyi.com/trove/logo.svg" />
+<meta property="og:url" content="https://anishfyi.com/trove/" />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="Trove - Beyond context windows" />
 <meta name="twitter:description" content="Repository memory engine + Claude Code plugin. Higher information density, not larger prompts." />
-<meta name="twitter:image" content="https://velofy.github.io/trove/logo.svg" />
+<meta name="twitter:image" content="https://anishfyi.com/trove/logo.svg" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -310,7 +310,7 @@
       <div class="hero-cta">
         <a class="btn-primary" href="#engine">Try the engine</a>
         <a class="btn-ghost" href="#install">Install plugin</a>
-        <a class="btn-ghost" href="https://github.com/velofy/trove/releases/tag/v0.2.0">v0.2.0 release</a>
+        <a class="btn-ghost" href="https://github.com/anishfyi/trove/releases/tag/v0.2.0">v0.2.0 release</a>
       </div>
     </div>
 
@@ -329,7 +329,7 @@
     <div class="cmd">
       <button class="copy" :class="{done: copied==='e1'}" @click="copy('e1', engineCmd)" x-text="copied==='e1' ? 'Copied' : 'Copy'"></button>
       <pre><span class="muted"># requires Rust</span>
-git clone https://github.com/velofy/trove && cd trove
+git clone https://github.com/anishfyi/trove && cd trove
 cargo build -p trove-cli
 cargo run -p trove-cli -- index
 cargo run -p trove-cli -- query "modify vendor onboarding"</pre>
@@ -368,8 +368,8 @@ cargo run -p trove-cli -- query "modify vendor onboarding"</pre>
           <div class="step-main">
             <h3 class="step-title">Add the marketplace</h3>
             <div class="cmd mini">
-              <button class="copy" :class="{done: copied==='s1'}" @click="copy('s1', '/plugin marketplace add velofy/trove')" x-text="copied==='s1' ? 'Copied' : 'Copy'"></button>
-              <pre><span class="prompt">/plugin</span> marketplace add velofy/trove</pre>
+              <button class="copy" :class="{done: copied==='s1'}" @click="copy('s1', '/plugin marketplace add anishfyi/trove')" x-text="copied==='s1' ? 'Copied' : 'Copy'"></button>
+              <pre><span class="prompt">/plugin</span> marketplace add anishfyi/trove</pre>
             </div>
             <p class="step-detail">
               A marketplace is just a Git repo that lists installable plugins. This points Claude Code
@@ -377,7 +377,7 @@ cargo run -p trove-cli -- query "modify vendor onboarding"</pre>
             </p>
             <p class="step-detail subtle">
               Hit an SSH <code>Permission denied (publickey)</code> error? You have no SSH key on GitHub,
-              so use the HTTPS URL instead: <code>/plugin marketplace add https://github.com/velofy/trove.git</code>
+              so use the HTTPS URL instead: <code>/plugin marketplace add https://github.com/anishfyi/trove.git</code>
             </p>
           </div>
         </li>
@@ -441,7 +441,7 @@ cargo run -p trove-cli -- query "modify vendor onboarding"</pre>
       <div class="cmd">
         <button class="copy" :class="{done: copied==='m1'}" @click="copy('m1', manual)" x-text="copied==='m1' ? 'Copied' : 'Copy'"></button>
         <pre><span class="muted"># skills only (no auto-load hook)</span>
-git clone https://github.com/velofy/trove /tmp/trove
+git clone https://github.com/anishfyi/trove /tmp/trove
 cp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/</pre>
       </div>
       <p class="note">
@@ -598,12 +598,12 @@ hiding query cost behind reflection.
       <a href="VISION.md">Vision</a> ·
       <a href="PRD.md">PRD</a> ·
       <a href="ENGINEERING.md">Engineering</a> ·
-      <a href="https://github.com/velofy/trove/releases/tag/v0.2.0">v0.2.0 release</a>
+      <a href="https://github.com/anishfyi/trove/releases/tag/v0.2.0">v0.2.0 release</a>
     </p>
     <div class="foot-links">
-      <a class="pill" href="https://github.com/velofy/trove"><span class="ic">&#9733;</span> github.com/velofy/trove</a>
+      <a class="pill" href="https://github.com/anishfyi/trove"><span class="ic">&#9733;</span> github.com/anishfyi/trove</a>
       <a class="pill" href="VISION.md"><span class="ic">&#167;</span> Vision</a>
-      <a class="pill" href="https://github.com/velofy/trove/releases/tag/v0.2.0"><span class="ic">&#9733;</span> v0.2.0</a>
+      <a class="pill" href="https://github.com/anishfyi/trove/releases/tag/v0.2.0"><span class="ic">&#9733;</span> v0.2.0</a>
     </div>
   </footer>
 
@@ -617,9 +617,9 @@ hiding query cost behind reflection.
       // ── install ──
       tab: 'plugin',
       copied: null,
-      engineCmd: "git clone https://github.com/velofy/trove && cd trove\ncargo build -p trove-cli\ncargo run -p trove-cli -- index\ncargo run -p trove-cli -- query \"modify vendor onboarding\"",
-      plugins: "/plugin marketplace add https://github.com/velofy/trove.git\n/plugin install trove@velofy-trove",
-      manual: "git clone https://github.com/velofy/trove /tmp/trove\ncp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/",
+      engineCmd: "git clone https://github.com/anishfyi/trove && cd trove\ncargo build -p trove-cli\ncargo run -p trove-cli -- index\ncargo run -p trove-cli -- query \"modify vendor onboarding\"",
+      plugins: "/plugin marketplace add https://github.com/anishfyi/trove.git\n/plugin install trove@velofy-trove",
+      manual: "git clone https://github.com/anishfyi/trove /tmp/trove\ncp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/",
       copy(id, text){
         navigator.clipboard.writeText(text).then(() => {
           this.copied = id;

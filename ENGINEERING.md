@@ -111,7 +111,7 @@ env var or script path is unavailable.
 - `marketplace.json` (`name: velofy-trove`) catalogs the single plugin with a relative
   `source: ./plugins/trove`.
 - `plugin.json` carries identity and `version: 0.1.0`.
-- Users add the marketplace with `/plugin marketplace add velofy/trove` and install with
+- Users add the marketplace with `/plugin marketplace add anishfyi/trove` and install with
   `/plugin install trove@velofy-trove`. `claude plugin validate` is used in CI/manual checks before
   publishing.
 

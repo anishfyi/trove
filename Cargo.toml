@@ -12,7 +12,7 @@ version = "0.2.0"
 edition = "2021"
 license = "MIT"
 authors = ["anishfyi"]
-repository = "https://github.com/velofy/trove"
+repository = "https://github.com/anishfyi/trove"
 
 [workspace.dependencies]
 anyhow = "1"
