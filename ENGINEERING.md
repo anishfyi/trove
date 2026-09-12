@@ -36,7 +36,7 @@ Data flows one way at session start (trove -> context via the hook) and on deman
 
 ```
 trove/
-├── .claude-plugin/marketplace.json     # marketplace "anishfyi-trove", lists the plugin
+├── .claude-plugin/marketplace.json     # marketplace "velofy-trove", lists the plugin
 └── plugins/trove/
     ├── .claude-plugin/plugin.json      # plugin identity, kebab-case name "trove"
     ├── skills/{init,remember,recall}/SKILL.md
@@ -46,7 +46,7 @@ trove/
 
 Plugin skills are namespaced by the plugin name, so the commands are `/trove:init`,
 `/trove:remember`, `/trove:recall`. The marketplace name is referenced at install time:
-`/plugin install trove@anishfyi-trove`.
+`/plugin install trove@velofy-trove`.
 
 ## 4. Storage format
 
@@ -108,11 +108,11 @@ env var or script path is unavailable.
 
 ## 8. Distribution and versioning
 
-- `marketplace.json` (`name: anishfyi-trove`) catalogs the single plugin with a relative
+- `marketplace.json` (`name: velofy-trove`) catalogs the single plugin with a relative
   `source: ./plugins/trove`.
 - `plugin.json` carries identity and `version: 0.1.0`.
-- Users add the marketplace with `/plugin marketplace add anishfyi/trove` and install with
-  `/plugin install trove@anishfyi-trove`. `claude plugin validate` is used in CI/manual checks before
+- Users add the marketplace with `/plugin marketplace add velofy/trove` and install with
+  `/plugin install trove@velofy-trove`. `claude plugin validate` is used in CI/manual checks before
   publishing.
 
 ## 9. Security and privacy
