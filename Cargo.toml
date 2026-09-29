@@ -8,11 +8,13 @@ members = [
 ]
 
 [workspace.package]
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 license = "MIT"
 authors = ["anishfyi"]
 repository = "https://github.com/anishfyi/trove"
+homepage = "https://velofy.co/trove/"
+documentation = "https://velofy.co/trove/"
 
 [workspace.dependencies]
 anyhow = "1"

@@ -1,11 +1,11 @@
 {
   "name": "trove",
   "description": "Repository memory for Claude Code: index symbols and architecture, progressively retrieve context beyond the context window, and capture durable engineering decisions in a personal trove.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": {
     "name": "anishfyi"
   },
-  "homepage": "https://anishfyi.com/trove/",
+  "homepage": "https://velofy.co/trove/",
   "repository": "https://github.com/anishfyi/trove",
   "license": "MIT",
   "keywords": ["memory", "trove", "knowledge", "notes", "skill"]
