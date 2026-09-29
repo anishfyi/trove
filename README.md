@@ -1,14 +1,17 @@
-<p align="center"><img src="logo.svg" alt="Trove" width="88" height="88"></p>
+<p align="center"><img src="logo.svg" alt="Trove logo, a sprout in a pot" width="88" height="88"></p>
 
 # Trove
 
-**Beyond context windows.**
+**Beyond context windows.** Repository memory for LLMs: a Rust index engine and a Claude Code memory plugin.
 
-Trove makes LLMs operate over repositories and knowledge bases far larger than their native context
-window. Not by stuffing more tokens into the prompt, but by indexing everything once and retrieving
-only what matters, at the right level of detail.
+[![Release](https://img.shields.io/github/v/release/anishfyi/trove)](https://github.com/anishfyi/trove/releases/latest)
+[![License: MIT](https://img.shields.io/github/license/anishfyi/trove)](LICENSE)
 
-Live page: **https://anishfyi.com/trove/**
+**Documentation: https://velofy.co/trove/**
+
+Trove helps LLMs work over repositories and knowledge bases larger than their context window. Not by
+stuffing more tokens into the prompt, but by indexing everything once and retrieving only what
+matters, at the right level of detail.
 
 ---
 
@@ -16,19 +19,17 @@ Live page: **https://anishfyi.com/trove/**
 
 | Layer | What it is | Where it lives |
 |-------|-----------|----------------|
-| **Engine** | Symbol index, module/subsystem/architecture summaries, dependency graph, progressive retrieval | `.trove/` in any repo (Rust CLI) |
-| **Plugin** | Personal engineering memory: decisions, gotchas, conventions | `~/.claude/trove` or `./.claude/trove` (Claude Code) |
+| **Engine** | Rust CLI: symbol index, summaries, dependency graph, progressive retrieval | `.trove/` in the indexed repo |
+| **Plugin** | Claude Code memory: decisions, gotchas, conventions | `~/.claude/trove` or `./.claude/trove` |
 
 The engine answers "what is in this codebase and where?" The plugin answers "what did we decide and
 why?" Together they give Claude both structural repo knowledge and durable session memory.
-
-See [VISION.md](VISION.md) for the full memory hierarchy design (L0-L6).
 
 ---
 
 ## Quick start: engine
 
-Requires Rust. From any repository:
+Requires Rust. There are no prebuilt binaries yet.
 
 ```bash
 git clone https://github.com/anishfyi/trove
@@ -40,20 +41,28 @@ cargo run -p trove-cli -- index
 # Check what was indexed
 cargo run -p trove-cli -- status
 
-# Retrieve context for a task (architecture → subsystem → module → symbol)
+# Retrieve context for a task (architecture, subsystem, module, symbol)
 cargo run -p trove-cli -- query "modify vendor onboarding"
 ```
 
+`cargo run` indexes the current directory, which here is the Trove clone. To index another
+repository, pass `--repo` before the subcommand, or install the binary:
+
+```bash
+cargo run -p trove-cli -- --repo /path/to/repo index
+cargo install --path crates/trove-cli    # then: trove --repo /path/to/repo index
+```
+
 Other commands: `import-historical`, `record`, `patch`. Run `cargo run -p trove-cli -- --help` for
-the full list.
+the full list, or see the [CLI reference](https://velofy.co/trove/cli-reference/).
 
 ### What gets indexed
 
-- **L1 Symbols**: functions, classes, structs, traits, tests (Rust, Python, JS/TS, Go, Bash)
+- **L1 Symbols**: functions, classes, methods, structs, enums, traits, modules (Rust, Python, JS/TS, Go, Bash)
 - **L2 Modules**: per-file summaries: exports, dependencies, assumptions, side effects
-- **L3 Subsystems**: package-level clusters
-- **L4 Architecture**: repo-wide design map and data flow
-- **L5 Historical**: imported from your Claude trove entries on demand
+- **L3 Subsystems**: clusters by top-level directory
+- **L4 Architecture**: repo-wide summary of subsystems and the dependency graph
+- **L5 Historical**: imported from your Claude trove entries with `import-historical`
 
 Retrieval stops as soon as it has enough detail. Unused context budget is healthy.
 
@@ -136,6 +145,30 @@ Entry types: `decision`, `gotcha`, `preference`, `reference`, `project`, `snippe
 
 ---
 
+## Documentation
+
+Full docs live at **https://velofy.co/trove/**:
+
+- [Installation](https://velofy.co/trove/installation/)
+- [Engine quickstart](https://velofy.co/trove/engine-quickstart/)
+- [Plugin quickstart](https://velofy.co/trove/plugin-quickstart/)
+- [Indexing a repository](https://velofy.co/trove/indexing/)
+- [Retrieval levels](https://velofy.co/trove/retrieval/)
+- [Memory hierarchy](https://velofy.co/trove/memory-hierarchy/): what is built today
+- [Personal trove](https://velofy.co/trove/personal-trove/)
+- [CLI reference](https://velofy.co/trove/cli-reference/)
+- [Plugin reference](https://velofy.co/trove/plugin-reference/)
+- [Roadmap](https://velofy.co/trove/roadmap/)
+- [Changelog](https://velofy.co/trove/changelog/)
+
+Design documents in this repository:
+
+- [Vision: Beyond Context Windows](VISION.md): the full L0-L6 memory hierarchy design
+- [Product Requirements (v0.1 plugin)](PRD.md)
+- [Engineering Design](ENGINEERING.md)
+
+---
+
 ## Repository layout
 
 ```
@@ -151,17 +184,25 @@ trove/
 │   ├── skills/                 # init, remember, recall, index, query
 │   ├── hooks/                  # SessionStart load + SessionEnd reflect
 │   └── scripts/                # load-trove.sh, reflect-trove.sh, trove.sh
-├── index.html                  # landing page
+├── index.html, 404.html        # redirects to https://velofy.co/trove/
 ├── PRD.md
 └── ENGINEERING.md
 ```
 
-## Docs
-
-- [Vision: Beyond Context Windows](VISION.md)
-- [Product Requirements (v0.1 plugin)](PRD.md)
-- [Engineering Design](ENGINEERING.md)
-
 ---
 
-Built by [anishfyi](https://github.com/anishfyi). MIT licensed.
+## Contributing
+
+Issues and pull requests are welcome at https://github.com/anishfyi/trove. Before opening a pull
+request, run:
+
+```bash
+cargo build --workspace
+cargo test --workspace
+```
+
+Repository content avoids em dashes and en dashes (see `.cursor/rules/no-em-dashes.mdc`).
+
+## License
+
+MIT, see [LICENSE](LICENSE). Built by [anishfyi](https://github.com/anishfyi).
