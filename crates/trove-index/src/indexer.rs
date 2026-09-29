@@ -171,7 +171,7 @@ impl Indexer {
         self.store.write_json("symbols.json", &all_symbols)?;
 
         let manifest = TroveManifest {
-            version: "0.2.0".into(),
+            version: env!("CARGO_PKG_VERSION").into(),
             repo_root: self.repo_root.to_string_lossy().into(),
             indexed_at: Utc::now().to_rfc3339(),
             symbol_count: all_symbols.len(),

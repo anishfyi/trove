@@ -23,7 +23,7 @@ pub struct TroveManifest {
 impl Default for TroveManifest {
     fn default() -> Self {
         Self {
-            version: "0.2.0".into(),
+            version: env!("CARGO_PKG_VERSION").into(),
             repo_root: String::new(),
             indexed_at: String::new(),
             symbol_count: 0,
