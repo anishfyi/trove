@@ -1,4 +1,9 @@
-<p align="center"><img src="logo.svg" alt="Trove" width="88" height="88"></p>
+<p align="center">
+  <a href="https://velofy.co/trove/"><picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/anishfyi/trove/main/assets/tile-dark.svg">
+    <img alt="Trove" src="https://raw.githubusercontent.com/anishfyi/trove/main/assets/tile-light.svg" width="360">
+  </picture></a>
+</p>
 
 # Trove
 
