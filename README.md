@@ -83,28 +83,89 @@ Run these **one at a time** inside Claude Code:
 /reload-plugins
 ```
 
-**4. Create your personal trove**
+**4. Create your trove**
 
 ```
 /trove:init
 ```
 
-From here: `/trove:remember` to capture, `/trove:recall` to search, `/trove:index` to index the
-repo, `/trove:query` to retrieve layered context.
+Inside a repository this creates a **project trove** with conventions, memory and context sections,
+rendered as skills. Elsewhere it creates a personal trove at `~/.claude/trove`.
+
+**5. Map the codebase** (project trove)
+
+```
+/trove:index
+```
+
+From here: `/trove:remember` to capture, `/trove:recall` to search, `/trove:index` to re-index and
+refresh the context skill, `/trove:query` to retrieve layered context.
 
 ### Plugin commands
 
 | Command | What it does |
 |---------|--------------|
-| `/trove:init` | Scaffold `~/.claude/trove` or `./.claude/trove` |
-| `/trove:remember` | Capture one durable learning as an atomic entry |
+| `/trove:init` | Scaffold a project trove (`./.claude/trove`, with sections and skills) or `~/.claude/trove` |
+| `/trove:remember` | Capture one durable learning, routed to conventions, memory or context, with a secret guard |
 | `/trove:recall` | Search entries and answer with citations |
-| `/trove:index` | Index the repo into Trove memory layers |
+| `/trove:index` | Index the repo into Trove memory layers and refresh the context skill |
+| `/trove:render` | Re-render the project trove sections into skills |
 | `/trove:query` | Progressive retrieval with a context budget |
 
 Skills auto-trigger on intent: "remember this", "what do I know about X", "index this repo".
 
-Every session, the SessionStart hook loads your `INDEX.md` so Claude starts aware of past decisions.
+Every session, the SessionStart hook loads your `INDEX.md` files so Claude starts aware of past
+decisions, and re-renders any project trove skill whose entries changed (a hand edit or a `git pull`).
+
+### Project troves: conventions, memory and context as skills
+
+Every coding project gets its own trove under `.claude/trove/`, split into three sections. Each
+section is rendered into a Claude Code skill whose description is tuned to load on intent:
+
+| Section | Holds | Skill | Loads when |
+|---------|-------|-------|------------|
+| `conventions/` | Style, structure, naming, testing, commit and PR rules, things to never do | `<project>-conventions` | writing, editing, reviewing or committing code |
+| `memory/` | Decisions, gotchas and history, with the why | `<project>-memory` | changing behavior, picking an approach, debugging, asking why |
+| `context/` | Architecture, subsystems and key modules from the engine | `<project>-context` | orienting, locating code, planning cross-module changes |
+
+```
+.claude/
+├── trove/
+│   ├── INDEX.md                    # links to the three sections
+│   ├── conventions/INDEX.md + entries/
+│   ├── memory/INDEX.md + entries/
+│   └── context/INDEX.md + entries/ # generated entries refreshed by /trove:index
+└── skills/
+    ├── <project>-conventions/SKILL.md
+    ├── <project>-memory/SKILL.md
+    └── <project>-context/SKILL.md
+AGENTS.md                           # trove block so Codex, Cursor and pi find the same files
+```
+
+`<project>` is the repository folder name in lowercase kebab case. Commit `.claude/trove/`,
+`.claude/skills/` and `AGENTS.md` to share them with your team and every agent. The generated
+`SKILL.md` files are never edited by hand: change the entries and re-render.
+
+**Keeping them in sync.** `/trove:remember` writes the entry to the right section, updates that
+section's `INDEX.md` and re-renders its skill. `/trove:index` runs the engine and then rebuilds the
+generated context entries (hand-written context entries are kept). `/trove:recall` searches all three.
+
+**Secret guard.** Every write runs a mechanical scan for credential shapes (`sk-`, `AKIA`, `ghp_`,
+`shpat_`, `xox?-`, private key blocks, `key=`/`token=`/`password:` assignments). A hit refuses the
+entry (or redacts it with `--redact`), and rendering redacts anything that slipped through.
+
+The same steps work without Claude Code through the bundled script:
+
+```bash
+T=plugins/trove/scripts/trove.sh
+bash $T init --project          # sections, skills and the AGENTS.md block
+bash $T guard <entry-file>      # exit 1 on a possible secret; --redact to scrub it
+bash $T render [section|all]    # sections -> .claude/skills/<project>-<section>/SKILL.md
+bash $T context                 # .trove/ engine output -> context section and skill (needs jq or python3)
+bash $T sync                    # context (when indexed) plus render all
+```
+
+Tests for the generator: `bash plugins/trove/tests/render.test.sh`.
 
 ### Manual install (skills only, no hooks)
 
@@ -128,7 +189,9 @@ Each entry is one file. Claude picks **Markdown** for prose or **JSON** for stru
     └── staging-db-mirror.md
 ```
 
-Entry types: `decision`, `gotcha`, `preference`, `reference`, `project`, `snippet`.
+A project trove uses the same entry format inside each section's `entries/`.
+
+Entry types: `convention`, `decision`, `gotcha`, `preference`, `reference`, `project`, `snippet`, `context`.
 
 **Save:** decisions and rationale, gotchas, conventions, external references, non-obvious constraints.
 

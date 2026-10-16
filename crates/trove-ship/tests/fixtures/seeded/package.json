@@ -1,0 +1,9 @@
+{
+  "name": "billing-service",
+  "version": "1.4.0",
+  "scripts": {
+    "dev": "node src/billing.js",
+    "test": "node --test"
+  },
+  "engines": { "node": ">=20" }
+}
