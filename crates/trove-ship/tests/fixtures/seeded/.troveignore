@@ -1,0 +1,9 @@
+# Paths that never enter the docs
+docs/adr/0003-vendor-contract.md
+
+# Redaction rules
+allow: oss@acme-billing.com
+customer: Globex
+deny: Project Nightjar
+deny-regex: BILL-\d{4}
+internal-domain: billing-ops.net

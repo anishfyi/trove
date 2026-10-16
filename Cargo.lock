@@ -733,6 +733,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "trove-ship"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap",
+ "ignore",
+ "regex",
+ "serde",
+ "serde_json",
+ "trove-core",
+ "trove-index",
+]
+
+[[package]]
 name = "typenum"
 version = "1.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
