@@ -14,9 +14,10 @@ path = "src/main.rs"
 [dependencies]
 anyhow.workspace = true
 chrono.workspace = true
-clap.workspace = true
+clap = { workspace = true, features = ["env"] }
 serde.workspace = true
 serde_json.workspace = true
 trove-core = { path = "../trove-core" }
 trove-index = { path = "../trove-index" }
 trove-retrieve = { path = "../trove-retrieve" }
+trove-tools = { path = "../trove-tools" }
