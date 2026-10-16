@@ -33,14 +33,14 @@ Live page: **https://anishfyi.com/trove/**
 ## What is new in v0.3
 
 v0.3 turns Trove from a Claude Code plugin with an engine into a layer any coding agent can use.
-The epic is [#19](https://github.com/anishfyi/trove/issues/19); each track lands as its own PR.
+The epic is [#19](https://github.com/anishfyi/trove/issues/19); each track landed as its own PR.
 
 | Track | Issue | PR | Status |
 |-------|-------|----|--------|
-| **Project troves**: conventions, memory and context rendered as skills that load on intent | [#20](https://github.com/anishfyi/trove/issues/20) | [#26](https://github.com/anishfyi/trove/pull/26) | In review |
-| **Dense CLI**: `trove ask` across every trove and doc, `trove tools` for installed CLIs | [#21](https://github.com/anishfyi/trove/issues/21) | [#27](https://github.com/anishfyi/trove/pull/27) | In review |
-| **`trove ship`**: handoff docs with secrets and private info stripped | [#22](https://github.com/anishfyi/trove/issues/22) | [#28](https://github.com/anishfyi/trove/pull/28) | In review |
-| **Website**: redesign, link previews and sitemap | [#23](https://github.com/anishfyi/trove/issues/23) | [#25](https://github.com/anishfyi/trove/pull/25) | In review |
+| **Project troves**: conventions, memory and context rendered as skills that load on intent | [#20](https://github.com/anishfyi/trove/issues/20) | [#26](https://github.com/anishfyi/trove/pull/26) | Merged |
+| **Dense CLI**: `trove ask` across every trove and doc, `trove tools` for installed CLIs | [#21](https://github.com/anishfyi/trove/issues/21) | [#27](https://github.com/anishfyi/trove/pull/27) | Merged |
+| **`trove ship`**: handoff docs with secrets and private info stripped | [#22](https://github.com/anishfyi/trove/issues/22) | [#28](https://github.com/anishfyi/trove/pull/28) | Merged |
+| **Website**: redesign, link previews and sitemap | [#23](https://github.com/anishfyi/trove/issues/23) | [#25](https://github.com/anishfyi/trove/pull/25) | Merged |
 | **macOS and Linux app**: one place for your work memory across projects and agents | [#24](https://github.com/anishfyi/trove/issues/24) | | Coming soon |
 
 ---
@@ -179,7 +179,7 @@ trove/
 │   ├── trove-core/             # MemoryObject, compression, L0-L6 types
 │   ├── trove-index/            # tree-sitter symbol index, dependency graph
 │   ├── trove-retrieve/         # progressive retrieval + context budget
-│   ├── trove-cli/              # trove binary; ask and tools arrive in #27
+│   ├── trove-cli/              # trove binary, with ask and tools (#27)
 │   ├── trove-tools/            # installed CLI catalog for trove tools (#27)
 │   └── trove-ship/             # handoff docs with redaction (#28)
 ├── plugins/trove/
@@ -194,7 +194,7 @@ trove/
 └── ENGINEERING.md
 ```
 
-Entries marked with a PR number arrive with that v0.3 PR.
+Entries marked with a PR number landed in that v0.3 PR.
 
 ## Docs
 
