@@ -39,10 +39,7 @@ impl RetrievalPipeline {
 
     pub fn query(&self, query: &str, budget: ContextBudget) -> anyhow::Result<AssembledContext> {
         let terms = tokenize(query);
-        let graph: DependencyGraph = self
-            .store
-            .read_json("graph.json")?
-            .unwrap_or_default();
+        let graph: DependencyGraph = self.store.read_json("graph.json")?.unwrap_or_default();
         let symbols: Vec<Symbol> = self.store.read_json("symbols.json")?.unwrap_or_default();
 
         let mut items = Vec::new();
@@ -51,7 +48,9 @@ impl RetrievalPipeline {
 
         // L4 Architecture
         if used_tokens < budget.architecture {
-            if let Some(item) = self.best_match(MemoryKind::Architecture, &terms, budget.architecture)? {
+            if let Some(item) =
+                self.best_match(MemoryKind::Architecture, &terms, budget.architecture)?
+            {
                 used_tokens += ContextBudget::estimate_tokens(&item.content);
                 items.push(item);
             }
@@ -65,7 +64,9 @@ impl RetrievalPipeline {
                 stopped_early = true;
                 break;
             }
-            if let Some(item) = object_to_item(obj, MemoryLevel::L3Subsystem, CompressionTier::Summary) {
+            if let Some(item) =
+                object_to_item(obj, MemoryLevel::L3Subsystem, CompressionTier::Summary)
+            {
                 let cost = ContextBudget::estimate_tokens(&item.content);
                 if used_tokens + cost > budget.architecture + subsystem_budget {
                     stopped_early = true;
@@ -83,9 +84,11 @@ impl RetrievalPipeline {
                 stopped_early = true;
                 break;
             }
-            if let Some(item) = object_to_item(obj, MemoryLevel::L2Module, CompressionTier::Summary) {
+            if let Some(item) = object_to_item(obj, MemoryLevel::L2Module, CompressionTier::Summary)
+            {
                 let cost = ContextBudget::estimate_tokens(&item.content);
-                if used_tokens + cost > budget.architecture + budget.active_files + subsystem_budget {
+                if used_tokens + cost > budget.architecture + budget.active_files + subsystem_budget
+                {
                     stopped_early = true;
                     break;
                 }
@@ -123,11 +126,7 @@ impl RetrievalPipeline {
                 tier: CompressionTier::Summary,
                 content,
                 confidence_reason: "symbol name/path match".into(),
-                retrieval_path: vec![
-                    "query".into(),
-                    sym.path.clone(),
-                    sym.name.clone(),
-                ],
+                retrieval_path: vec!["query".into(), sym.path.clone(), sym.name.clone()],
             });
         }
 
@@ -145,7 +144,10 @@ impl RetrievalPipeline {
                     stopped_early = true;
                     break;
                 }
-                if let Some(sym) = symbols.iter().find(|s| s.id == *node_id || s.path == *node_id) {
+                if let Some(sym) = symbols
+                    .iter()
+                    .find(|s| s.id == *node_id || s.path == *node_id)
+                {
                     let content = format!("neighbor: {} at {}", sym.name, sym.path);
                     let cost = ContextBudget::estimate_tokens(&content);
                     dep_budget += cost;
@@ -169,7 +171,9 @@ impl RetrievalPipeline {
                 stopped_early = true;
                 break;
             }
-            if let Some(item) = object_to_item(obj, MemoryLevel::L5Historical, CompressionTier::Summary) {
+            if let Some(item) =
+                object_to_item(obj, MemoryLevel::L5Historical, CompressionTier::Summary)
+            {
                 used_tokens += ContextBudget::estimate_tokens(&item.content);
                 items.push(item);
             }
@@ -191,9 +195,7 @@ impl RetrievalPipeline {
         token_budget: usize,
     ) -> anyhow::Result<Option<RetrievedItem>> {
         let objects = self.store.read_objects(kind)?;
-        let best = objects
-            .iter()
-            .max_by_key(|o| score_object(o, terms));
+        let best = objects.iter().max_by_key(|o| score_object(o, terms));
         Ok(best.and_then(|obj| {
             let item = object_to_item(obj, obj.kind.level(), CompressionTier::Summary)?;
             if ContextBudget::estimate_tokens(&item.content) <= token_budget {
@@ -204,7 +206,11 @@ impl RetrievalPipeline {
         }))
     }
 
-    fn rank_objects(&self, kind: MemoryKind, terms: &[String]) -> anyhow::Result<Vec<MemoryObject>> {
+    fn rank_objects(
+        &self,
+        kind: MemoryKind,
+        terms: &[String],
+    ) -> anyhow::Result<Vec<MemoryObject>> {
         let mut objects = self.store.read_objects(kind)?;
         objects.sort_by_key(|o| std::cmp::Reverse(score_object(o, terms)));
         Ok(objects)
@@ -216,17 +222,13 @@ fn object_to_item(
     level: MemoryLevel,
     tier: CompressionTier,
 ) -> Option<RetrievedItem> {
-    let content = obj
-        .text
-        .at_tier(tier)
-        .map(str::to_string)
-        .or_else(|| {
-            if tier == CompressionTier::Keywords && !obj.text.keywords.is_empty() {
-                Some(obj.text.keywords_line())
-            } else {
-                None
-            }
-        })?;
+    let content = obj.text.at_tier(tier).map(str::to_string).or_else(|| {
+        if tier == CompressionTier::Keywords && !obj.text.keywords.is_empty() {
+            Some(obj.text.keywords_line())
+        } else {
+            None
+        }
+    })?;
 
     Some(RetrievedItem {
         level,
@@ -310,7 +312,8 @@ pub fn import_historical(store: &TroveStore, trove_dir: &std::path::Path) -> any
                 continue;
             }
             let hash = trove_core::store::content_hash(content.as_bytes());
-            let mut obj = MemoryObject::new(format!("historical:{slug}"), MemoryKind::Historical, hash);
+            let mut obj =
+                MemoryObject::new(format!("historical:{slug}"), MemoryKind::Historical, hash);
             obj.path = Some(path.to_string_lossy().into());
             obj.text = trove_core::compression::CompressedText::from_raw(content);
             obj.text.compress_heuristic();
