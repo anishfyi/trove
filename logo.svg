@@ -27,6 +27,7 @@
 
   <!-- sprout -->
   <g class="sprout">
+    <circle class="halo" cx="32" cy="13" r="7.5" fill="#e8553a"/>
     <path d="M32 37c0-8-1-14 0-21" fill="none" stroke="#2f6f6a" stroke-width="3.2" stroke-linecap="round"/>
     <g class="leaf-l">
       <path d="M32 27c-6-.5-11.5-4-13.5-9.5 6-1 12 2 13.5 9.5z" fill="#5b9c6a"/>
@@ -36,7 +37,6 @@
       <path d="M32 23c5.5-.5 11-4 13-9.5-6-1-11.5 2-13 9.5z" fill="#7cb98a"/>
       <path d="M33 22c4-1.8 7.3-4.3 9.6-7.2" fill="none" stroke="#5f9d6e" stroke-width=".9" stroke-linecap="round" opacity=".7"/>
     </g>
-    <circle class="halo" cx="32" cy="13" r="7.5" fill="#e8553a"/>
     <g class="bud">
       <circle cx="32" cy="13" r="4.4" fill="#d83a22"/>
       <circle cx="30.5" cy="11.5" r="1.4" fill="#fff" opacity=".45"/>
@@ -45,6 +45,6 @@
 
   <!-- rising motes -->
   <circle class="mote" cx="24.5" cy="11" r="1" fill="#e9a23b"/>
-  <circle class="mote b" cx="40" cy="8.5" r=".9" fill="#e9a23b"/>
-  <circle class="mote c" cx="35.5" cy="5" r=".7" fill="#e9a23b"/>
+  <circle class="mote b" cx="40" cy="9.5" r=".9" fill="#e9a23b"/>
+  <circle class="mote c" cx="35.5" cy="7.5" r=".7" fill="#e9a23b"/>
 </svg>
