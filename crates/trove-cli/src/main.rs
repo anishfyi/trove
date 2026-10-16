@@ -1,8 +1,15 @@
+mod ask;
+mod llm;
+mod paths;
+mod repl;
+mod tools;
+
 use std::path::PathBuf;
 
 use anyhow::Result;
 use chrono::Utc;
 use clap::{Parser, Subcommand};
+use serde_json::json;
 use trove_core::execution::ExecutionEvent;
 use trove_core::patch::PatchRecord;
 use trove_core::store::TroveStore;
@@ -10,18 +17,79 @@ use trove_index::{IndexOptions, Indexer};
 use trove_retrieve::budget::ContextBudget;
 use trove_retrieve::pipeline::{import_historical, RetrievalPipeline};
 
+use crate::ask::{AskOptions, Knowledge};
+use crate::llm::Provider;
+use crate::paths::{find_repo_root, home_dir};
+
 #[derive(Parser)]
-#[command(name = "trove", about = "Repository memory engine for LLMs", version)]
+#[command(
+    name = "trove",
+    about = "Memory, semantic and context layer for coding agents",
+    long_about = "Memory, semantic and context layer for coding agents.\n\nRun `trove` with no arguments for an interactive prompt.",
+    version
+)]
 struct Cli {
-    #[arg(long, default_value = ".")]
-    repo: PathBuf,
+    /// Repository root (default: current dir; ask and the prompt search upward for .trove or .git)
+    #[arg(long, global = true)]
+    repo: Option<PathBuf>,
+
+    /// Machine-readable JSON output
+    #[arg(long, global = true)]
+    json: bool,
+
+    /// Token budget for assembled context
+    #[arg(long, global = true, value_name = "TOKENS")]
+    budget: Option<usize>,
+
+    /// Answer step for ask: none keeps retrieval offline
+    #[arg(
+        long,
+        global = true,
+        value_enum,
+        env = "TROVE_PROVIDER",
+        default_value = "none"
+    )]
+    provider: Provider,
+
+    /// Model for the provider (anthropic default: claude-opus-5-5)
+    #[arg(long, global = true, env = "TROVE_MODEL")]
+    model: Option<String>,
 
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Answer a question from your troves, repo docs, code index and installed tools
+    Ask {
+        /// The question
+        #[arg(required = true, num_args = 1..)]
+        question: Vec<String>,
+        /// Max sources to consider before budgeting
+        #[arg(long, default_value_t = 12)]
+        limit: usize,
+        /// Leave the tool catalog out
+        #[arg(long)]
+        no_tools: bool,
+    },
+    /// Installed CLIs: `tools`, `tools search <terms>`, `tools <name>`, `tools refresh`
+    Tools {
+        /// list | search <terms> | refresh | describe <name> | <name>
+        args: Vec<String>,
+        /// Run each tool's --help (guarded, 1.5s timeout) when it has no man summary
+        #[arg(long)]
+        probe: bool,
+        /// Rescan every directory, ignoring the cache
+        #[arg(long)]
+        full: bool,
+        /// Open the man page for `tools <name>`
+        #[arg(long)]
+        man: bool,
+        /// Max rows (0 for all; list defaults to all)
+        #[arg(long)]
+        limit: Option<usize>,
+    },
     /// Index the repository: symbols, modules, subsystems, architecture
     Index {
         #[arg(long)]
@@ -30,13 +98,7 @@ enum Commands {
     /// Show index status
     Status,
     /// Progressive retrieval for a natural-language query
-    Query {
-        query: String,
-        #[arg(long, default_value_t = 200_000)]
-        budget: usize,
-        #[arg(long)]
-        json: bool,
-    },
+    Query { query: String },
     /// Import L5 historical entries from ~/.claude/trove or ./.claude/trove
     ImportHistorical,
     /// Record execution memory event
@@ -63,13 +125,70 @@ enum RecordEvent {
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
+    let repo = cli.repo.clone().unwrap_or_else(|| PathBuf::from("."));
+    let ask_repo = || match &cli.repo {
+        Some(r) => r.canonicalize().unwrap_or_else(|_| r.clone()),
+        None => find_repo_root(&PathBuf::from(".")),
+    };
+    let ask_opts = |limit: usize| AskOptions {
+        budget: cli.budget.unwrap_or(ask::DEFAULT_BUDGET),
+        limit,
+        provider: cli.provider,
+        model: cli.model.clone(),
+    };
 
-    match cli.command {
-        Commands::Index { full } => {
-            let indexer = Indexer::open(&cli.repo)?;
-            let report = indexer.index(IndexOptions {
-                incremental: !full,
+    let Some(command) = cli.command else {
+        return repl::Repl {
+            repo: ask_repo(),
+            json: cli.json,
+            opts: ask_opts(12),
+        }
+        .run();
+    };
+
+    match command {
+        Commands::Ask {
+            question,
+            limit,
+            no_tools,
+        } => {
+            let knowledge = Knowledge::load(&ask_repo(), !no_tools);
+            let result = ask::ask(&knowledge, &question.join(" "), &ask_opts(limit));
+            ask::print(&result, cli.json)?;
+        }
+        Commands::Tools {
+            args,
+            probe,
+            full,
+            man,
+            limit,
+        } => {
+            let is_list = args.is_empty() || args[0] == "list";
+            tools::run(tools::ToolsArgs {
+                limit: limit.unwrap_or(if is_list { 0 } else { 20 }),
+                args,
+                probe,
+                full,
+                man,
+                json: cli.json,
             })?;
+        }
+        Commands::Index { full } => {
+            let indexer = Indexer::open(&repo)?;
+            let report = indexer.index(IndexOptions { incremental: !full })?;
+            if cli.json {
+                println!(
+                    "{}",
+                    json!({
+                        "files_scanned": report.files_scanned,
+                        "symbols": report.symbols_indexed,
+                        "modules": report.modules_built,
+                        "subsystems": report.subsystems_built,
+                        "stale_rebuilt": report.stale_rebuilt,
+                    })
+                );
+                return Ok(());
+            }
             println!(
                 "Indexed {} files, {} symbols, {} modules, {} subsystems ({} stale rebuilt)",
                 report.files_scanned,
@@ -80,8 +199,13 @@ fn main() -> Result<()> {
             );
         }
         Commands::Status => {
-            let store = TroveStore::open(&cli.repo)?;
-            match store.read_manifest()? {
+            let store = TroveStore::open(&repo)?;
+            let manifest = store.read_manifest()?;
+            if cli.json {
+                println!("{}", serde_json::to_string_pretty(&manifest)?);
+                return Ok(());
+            }
+            match manifest {
                 Some(m) => {
                     println!("Trove v{}", m.version);
                     println!("Repo:   {}", m.repo_root);
@@ -94,13 +218,17 @@ fn main() -> Result<()> {
                 None => println!("No index found. Run: trove index"),
             }
         }
-        Commands::Query { query, budget, json } => {
-            let store = TroveStore::open(&cli.repo)?;
+        Commands::Query { query } => {
+            let store = TroveStore::open(&repo)?;
             let pipeline = RetrievalPipeline::new(store);
+            let budget = cli.budget.unwrap_or(200_000);
             let ctx = pipeline.query(&query, ContextBudget::for_total(budget))?;
 
-            if json {
-                println!("{}", serde_json::to_string_pretty(&QueryOutput::from(&ctx))?);
+            if cli.json {
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&QueryOutput::from(&ctx))?
+                );
             } else {
                 println!("# Query: {}\n", ctx.query);
                 println!(
@@ -124,9 +252,9 @@ fn main() -> Result<()> {
             }
         }
         Commands::ImportHistorical => {
-            let store = TroveStore::open(&cli.repo)?;
-            let project = cli.repo.join(".claude/trove");
-            let user = dirs_home().join(".claude/trove");
+            let store = TroveStore::open(&repo)?;
+            let project = repo.join(".claude/trove");
+            let user = home_dir().join(".claude/trove");
             let mut total = 0usize;
             if project.join("INDEX.md").exists() {
                 total += import_historical(&store, &project)?;
@@ -137,7 +265,7 @@ fn main() -> Result<()> {
             println!("Imported {total} historical entries");
         }
         Commands::Record { event } => {
-            let store = TroveStore::open(&cli.repo)?;
+            let store = TroveStore::open(&repo)?;
             let mut memory = store.read_execution()?;
             let now = Utc::now();
             match event {
@@ -160,7 +288,7 @@ fn main() -> Result<()> {
             after,
             reason,
         } => {
-            let store = TroveStore::open(&cli.repo)?;
+            let store = TroveStore::open(&repo)?;
             let id = format!("patch:{}:{}", path, Utc::now().timestamp());
             let patch = PatchRecord {
                 id,
@@ -180,12 +308,6 @@ fn main() -> Result<()> {
     }
 
     Ok(())
-}
-
-fn dirs_home() -> PathBuf {
-    std::env::var("HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from("."))
 }
 
 #[derive(serde::Serialize)]
