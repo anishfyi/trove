@@ -1,684 +1,961 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Trove - Beyond context windows</title>
-<meta name="description" content="Repository memory engine + Claude Code plugin. Index symbols, retrieve progressively, and keep durable engineering decisions across sessions." />
+<title>Trove: memory and context layer for coding agents</title>
+<meta name="description" content="Trove is the open-source memory, semantic and context layer for coding agents. A Rust engine indexes your repo into layered memory, and a Claude Code plugin loads project conventions, memory and context as skills every session." />
+<link rel="canonical" href="https://anishfyi.com/trove/" />
+<link rel="sitemap" type="application/xml" href="https://anishfyi.com/trove/sitemap.xml" />
+<meta name="author" content="anishfyi" />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+
 <link rel="icon" type="image/svg+xml" href="logo.svg" />
-<link rel="apple-touch-icon" href="logo.svg" />
-<meta name="theme-color" content="#f5f0e6" />
-<meta name="color-scheme" content="light" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+<meta name="theme-color" content="#0c0e12" />
+<meta name="color-scheme" content="dark light" />
+
+<!-- Open Graph: Facebook, LinkedIn, Slack, WhatsApp, Discord -->
 <meta property="og:type" content="website" />
-<meta property="og:title" content="Trove - Beyond context windows" />
-<meta property="og:description" content="Index any repository into layered memory. Retrieve only what matters. Capture decisions that survive sessions." />
-<meta property="og:image" content="https://anishfyi.com/trove/logo.svg" />
+<meta property="og:site_name" content="Trove" />
+<meta property="og:locale" content="en_US" />
 <meta property="og:url" content="https://anishfyi.com/trove/" />
-<meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="Trove - Beyond context windows" />
-<meta name="twitter:description" content="Repository memory engine + Claude Code plugin. Higher information density, not larger prompts." />
-<meta name="twitter:image" content="https://anishfyi.com/trove/logo.svg" />
+<meta property="og:title" content="Trove: memory and context layer for coding agents" />
+<meta property="og:description" content="Index any repo into layered memory, load project conventions, memory and context as agent skills, and ship handoff docs with private info stripped. Open source, MIT." />
+<meta property="og:image" content="https://anishfyi.com/trove/og.png" />
+<meta property="og:image:secure_url" content="https://anishfyi.com/trove/og.png" />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Trove. Memory for coding agents, beyond the context window. Project skills, a dense CLI and trove ship." />
+<meta property="og:image" content="https://anishfyi.com/trove/og-square.png" />
+<meta property="og:image:secure_url" content="https://anishfyi.com/trove/og-square.png" />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="600" />
+<meta property="og:image:height" content="600" />
+<meta property="og:image:alt" content="Trove logo, a sprout in a terracotta pot, above the words trove, memory for coding agents." />
+
+<!-- X / Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Trove: memory and context layer for coding agents" />
+<meta name="twitter:description" content="Index any repo into layered memory. Load conventions, memory and context as agent skills. Open source, MIT." />
+<meta name="twitter:image" content="https://anishfyi.com/trove/og.png" />
+<meta name="twitter:image:alt" content="Trove. Memory for coding agents, beyond the context window. Project skills, a dense CLI and trove ship." />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Trove",
+  "description": "The open-source memory, semantic and context layer for coding agents. A Rust engine indexes a repository into layered memory, and a Claude Code plugin loads project conventions, memory and context as skills every session.",
+  "url": "https://anishfyi.com/trove/",
+  "image": "https://anishfyi.com/trove/og.png",
+  "screenshot": "https://anishfyi.com/trove/og.png",
+  "applicationCategory": "DeveloperApplication",
+  "applicationSubCategory": "Developer tools",
+  "operatingSystem": "macOS, Linux",
+  "softwareVersion": "0.2.0",
+  "license": "https://opensource.org/licenses/MIT",
+  "isAccessibleForFree": true,
+  "downloadUrl": "https://github.com/anishfyi/trove/releases",
+  "installUrl": "https://anishfyi.com/trove/#install",
+  "keywords": "coding agents, Claude Code, agent memory, context engineering, repository index, Rust, CLI",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Person", "name": "anishfyi", "url": "https://github.com/anishfyi" },
+  "sameAs": ["https://github.com/anishfyi/trove"]
+}
+</script>
+
+<script>
+  // Theme and motion are set before paint so there is no flash.
+  (function(){
+    var d = document.documentElement, t = null, m = null;
+    try { t = localStorage.getItem('trove-theme'); m = localStorage.getItem('trove-motion'); } catch(e){}
+    if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    d.setAttribute('data-motion', m === 'on' || m === 'paused' ? m : (reduce ? 'paused' : 'on'));
+    d.classList.add('js');
+  })();
+</script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 
 <style>
-  :root{
-    --paper:    #f5f0e6;
-    --paper-2:  #efe8d9;
-    --paper-3:  #e7ddca;
+  :root, :root[data-theme="dark"]{
+    --bg:       #0c0e12;
+    --bg-2:     #12151b;
+    --bg-3:     #191d26;
+    --line:     #222734;
+    --line-2:   #303747;
+    --ink:      #ece7dc;
+    --ink-soft: #a7acb8;
+    --ink-faint:#717787;
+    --accent:   #ff6a45;
+    --accent-2: #ff8a6a;
+    --teal:     #5cc0b5;
+    --gold:     #e3b65a;
+    --leaf:     #7cb98a;
+    --code-ink: #7e8597;
+    --code-hit: #ffb199;
+    --term:     #0f1217;
+    --term-ink: #e6e1d6;
+    --nav-bg:   rgba(18,21,27,.72);
+    --shadow:   0 18px 50px -24px rgba(0,0,0,.8);
+    color-scheme: dark;
+  }
+  :root[data-theme="light"]{
+    --bg:       #f5f0e6;
+    --bg-2:     #efe8d9;
+    --bg-3:     #e7ddca;
+    --line:     #ddd2bd;
+    --line-2:   #cbbfa4;
     --ink:      #1c2230;
     --ink-soft: #4a5263;
-    --ink-faint:#8a8676;
-    --vermilion:#d83a22;
+    --ink-faint:#7f7b6c;
+    --accent:   #d23a1f;
+    --accent-2: #b8321a;
     --teal:     #2f6f6a;
-    --gold:     #c79a3a;
-    --blue:     #3f6fa6;
-    --leaf:     #5b9c6a;
-    --leaf-2:   #7cb98a;
-    --sketch:   #3a2e1f;   /* hand-drawn ink outline    */
-    --soil:     #6f4a30;
-    --pot:      #c0613a;
-    --pot-2:    #a8502e;
-    --line:     #d8cdb6;
-    --line-2:   #cbbfa4;
+    --gold:     #a77a1f;
+    --leaf:     #4f8a5d;
+    --code-ink: #9d9583;
+    --code-hit: #d23a1f;
+    --term:     #171b24;
+    --term-ink: #e8e2d4;
+    --nav-bg:   rgba(245,240,230,.78);
+    --shadow:   0 18px 44px -26px rgba(28,34,48,.55);
+    color-scheme: light;
   }
+
   *{ box-sizing:border-box; margin:0; padding:0; }
-  html{ scroll-behavior:smooth; }
+  html{ scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+  html[data-motion="paused"]{ scroll-behavior:auto; }
   body{
-    background:var(--paper);
-    color:var(--ink);
-    font-family:"IBM Plex Sans", sans-serif;
-    line-height:1.6;
-    -webkit-font-smoothing:antialiased;
-    overflow-x:hidden;
-    overflow-wrap:break-word;
-    background-image:
-      linear-gradient(to bottom, rgba(0,0,0,0) 0, rgba(0,0,0,0) 33px, rgba(47,111,106,.05) 34px),
-      radial-gradient(130% 90% at 78% -8%, #fcf8ef 0%, var(--paper) 58%);
-    background-size:100% 34px, 100% 100%;
+    background:var(--bg); color:var(--ink);
+    font-family:"IBM Plex Sans", system-ui, sans-serif; font-size:16px; line-height:1.6;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden; overflow-wrap:break-word;
+    transition:background .25s ease, color .25s ease;
   }
-  ::selection{ background:var(--vermilion); color:var(--paper); }
+  ::selection{ background:var(--accent); color:#fff; }
   a{ color:var(--teal); text-decoration:none; }
-  a:hover{ text-decoration:underline; }
-  [x-cloak]{ display:none !important; }
+  a:hover{ text-decoration:underline; text-underline-offset:3px; }
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:3px; border-radius:6px; }
+  code, pre, .mono{ font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  .skip{ position:absolute; left:16px; top:-60px; z-index:100; background:var(--accent); color:#fff; padding:8px 12px; border-radius:8px; }
+  .skip:focus{ top:12px; }
 
-  .wrap{ max-width:1080px; margin:0 auto; padding:0 30px; position:relative; z-index:2; }
+  .wrap{ max-width:1080px; margin:0 auto; padding:0 28px; position:relative; z-index:2; }
 
-  /* drifting seeds in the background */
-  .pollen{ position:fixed; inset:0; pointer-events:none; z-index:1; overflow:hidden; }
-  .pollen i{ position:absolute; bottom:-20px; width:7px; height:7px; border-radius:50% 50% 50% 0;
-    background:var(--leaf-2); opacity:.0; transform:rotate(45deg);
-    animation:drift linear infinite; }
-  .pollen i:nth-child(even){ background:var(--gold); width:5px; height:5px; }
-  .pollen i:nth-child(3n){ background:var(--vermilion); opacity:.5; }
-  @keyframes drift{
-    0%{ transform:translateY(0) rotate(45deg); opacity:0; }
-    12%{ opacity:.55; }
-    88%{ opacity:.4; }
-    100%{ transform:translateY(-108vh) rotate(225deg); opacity:0; }
+  /* ───────── floating pill nav ───────── */
+  .nav{ position:fixed; top:14px; left:50%; transform:translateX(-50%); z-index:50;
+    display:flex; align-items:center; gap:4px; padding:6px; max-width:calc(100% - 24px);
+    background:var(--nav-bg); border:1px solid var(--line-2); border-radius:999px;
+    -webkit-backdrop-filter:blur(14px) saturate(1.3); backdrop-filter:blur(14px) saturate(1.3);
+    box-shadow:var(--shadow); }
+  .nav a, .nav button{ font-family:"JetBrains Mono", monospace; font-size:12.5px; color:var(--ink-soft);
+    background:none; border:0; cursor:pointer; padding:7px 11px; border-radius:999px; white-space:nowrap;
+    display:inline-flex; align-items:center; gap:7px; line-height:1; text-decoration:none; }
+  .nav a:hover, .nav button:hover{ color:var(--ink); background:var(--bg-3); text-decoration:none; }
+  .nav a.on{ color:var(--ink); background:var(--bg-3); }
+  .nav .brand{ color:var(--ink); font-weight:700; padding-left:8px; }
+  .nav .brand svg{ width:20px; height:20px; display:block; }
+  .nav .div{ width:1px; height:18px; background:var(--line-2); margin:0 2px; flex:none; }
+  .nav .icon{ width:32px; height:30px; padding:0; justify-content:center; }
+  .nav .icon svg{ width:16px; height:16px; display:block; }
+  .nav .cta{ background:var(--ink); color:var(--bg); font-weight:500; }
+  .nav .cta:hover{ background:var(--ink); color:var(--bg); opacity:.88; }
+  .ico-sun, .ico-play{ display:none !important; }
+  :root[data-theme="light"] .ico-sun{ display:block !important; }
+  :root[data-theme="light"] .ico-moon{ display:none !important; }
+  :root[data-motion="paused"] .ico-play{ display:block !important; }
+  :root[data-motion="paused"] .ico-pause{ display:none !important; }
+
+  /* ───────── hero ───────── */
+  .hero{ position:relative; padding:150px 0 70px; overflow:hidden; border-bottom:1px solid var(--line); }
+  .codebg{ position:absolute; inset:0; z-index:0; display:grid; grid-template-columns:repeat(3,1fr); gap:36px;
+    padding:0 28px; pointer-events:none; user-select:none;
+    -webkit-mask-image:radial-gradient(120% 85% at 70% 35%, #000 0%, rgba(0,0,0,.55) 45%, transparent 82%);
+            mask-image:radial-gradient(120% 85% at 70% 35%, #000 0%, rgba(0,0,0,.55) 45%, transparent 82%); }
+  .codebg .col{ overflow:hidden; }
+  .codebg .reel{ font-family:"JetBrains Mono", monospace; font-size:12px; line-height:1.85; color:var(--code-ink);
+    opacity:.38; white-space:pre; animation:reel 90s linear infinite; will-change:transform; }
+  .codebg .col:nth-child(2) .reel{ animation-duration:120s; animation-direction:reverse; }
+  .codebg .col:nth-child(3) .reel{ animation-duration:75s; }
+  .codebg .reel span{ display:block; transition:color .5s ease, opacity .5s ease; }
+  .codebg .reel span.hit{ color:var(--code-hit); opacity:1; }
+  @keyframes reel{ from{ transform:translateY(0); } to{ transform:translateY(-50%); } }
+  :root[data-motion="paused"] .codebg .reel{ animation-play-state:paused; }
+  .hero::after{ content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
+    background:linear-gradient(90deg, color-mix(in srgb, var(--bg) 94%, transparent) 0%, color-mix(in srgb, var(--bg) 82%, transparent) 50%, color-mix(in srgb, var(--bg) 25%, transparent) 100%); }
+  :root[data-theme="light"] .codebg .reel{ opacity:.3; }
+
+  .hero-inner{ position:relative; z-index:2; }
+  .kicker{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; font-family:"JetBrains Mono", monospace;
+    font-size:12px; color:var(--ink-faint); }
+  .kicker .tag{ color:var(--accent); border:1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    background:color-mix(in srgb, var(--accent) 10%, transparent); padding:4px 10px; border-radius:999px; }
+  h1{ margin-top:26px; font-weight:400; letter-spacing:-.02em; }
+  h1 .l1{ display:block; font-family:"JetBrains Mono", monospace; font-weight:700;
+    font-size:clamp(2.15rem, 6.2vw, 4.4rem); line-height:1.04; letter-spacing:-.045em; }
+  h1 .l2{ display:block; font-family:"Instrument Serif", Georgia, serif; font-style:italic;
+    font-size:clamp(2.5rem, 7.2vw, 5.3rem); line-height:1.02; color:var(--accent); margin-top:4px; letter-spacing:-.01em; }
+  .lede{ margin-top:24px; max-width:58ch; color:var(--ink-soft); font-size:1.08rem; }
+  .lede b{ color:var(--ink); font-weight:600; }
+
+  .install{ margin-top:32px; max-width:560px; background:var(--term); border:1px solid var(--line-2);
+    border-radius:14px; box-shadow:var(--shadow); overflow:hidden; }
+  .install .bar{ display:flex; align-items:center; gap:10px; padding:10px 12px 10px 16px;
+    border-bottom:1px solid #232937; font-family:"JetBrains Mono", monospace; font-size:12px; color:#9aa1b1; }
+  .install .bar b{ color:#f1ece2; font-weight:500; }
+  .install pre{ padding:14px 16px 16px; font-size:13.5px; line-height:1.85; color:var(--term-ink); overflow-x:auto; }
+  .p{ color:#ff8a6a; user-select:none; }
+  .c{ color:#6f7789; }
+  .g{ color:#7fd0c4; }
+  .y{ color:#e6c06b; }
+  .copy{ margin-left:auto; font-family:"JetBrains Mono", monospace; font-size:11px; letter-spacing:.04em;
+    padding:6px 10px; border-radius:8px; cursor:pointer; background:#1d2230; border:1px solid #2f3749; color:#c6ccd9;
+    transition:background .15s ease, border-color .15s ease, color .15s ease; flex:none; }
+  .copy:hover{ color:#fff; border-color:#5cc0b5; }
+  .copy.done{ background:#2f6f6a; border-color:#2f6f6a; color:#fff; }
+  .after{ margin-top:12px; font-size:.92rem; color:var(--ink-faint); }
+  .after code{ color:var(--ink-soft); font-size:.88em; }
+
+  .hero-links{ margin-top:24px; display:flex; flex-wrap:wrap; gap:10px; }
+  .btn{ font-family:"JetBrains Mono", monospace; font-size:12.5px; display:inline-flex; align-items:center; gap:8px;
+    padding:11px 16px; border-radius:999px; border:1px solid var(--line-2); color:var(--ink); background:var(--bg-2);
+    transition:border-color .15s ease, transform .15s ease; }
+  .btn:hover{ border-color:var(--ink-faint); text-decoration:none; transform:translateY(-1px); }
+  .btn svg{ width:15px; height:15px; }
+
+  .stats{ margin-top:40px; display:flex; flex-wrap:wrap; gap:10px 28px; font-family:"JetBrains Mono", monospace;
+    font-size:12.5px; color:var(--ink-faint); }
+  .stats a{ color:inherit; }
+  .stats b{ color:var(--ink); font-weight:700; font-size:1.05rem; margin-right:6px; }
+
+  /* ───────── sections ───────── */
+  section.sec{ padding:88px 0; border-bottom:1px solid var(--line); scroll-margin-top:70px; }
+  .js section.sec .rv{ opacity:0; transform:translateY(16px); transition:opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1); }
+  .js section.sec.in .rv{ opacity:1; transform:none; }
+  :root[data-motion="paused"] section.sec .rv{ transition:none; }
+  .num{ display:flex; align-items:center; gap:12px; font-family:"JetBrains Mono", monospace; font-size:12px;
+    color:var(--ink-faint); text-transform:uppercase; letter-spacing:.14em; }
+  .num b{ color:var(--accent); font-weight:500; }
+  .num::after{ content:""; flex:1; height:1px; background:linear-gradient(90deg, var(--line-2), transparent); }
+  h2{ margin-top:22px; font-family:"JetBrains Mono", monospace; font-weight:700; letter-spacing:-.035em;
+    font-size:clamp(1.65rem, 3.8vw, 2.55rem); line-height:1.12; }
+  h2 em{ display:block; font-family:"Instrument Serif", Georgia, serif; font-weight:400; font-style:italic;
+    color:var(--accent); letter-spacing:-.005em; font-size:1.12em; }
+  .intro{ margin-top:16px; max-width:62ch; color:var(--ink-soft); font-size:1.04rem; }
+  .intro code, .card code, .note code, td code, .step p code{ font-size:.86em; background:var(--bg-3); color:var(--ink);
+    padding:1px 6px; border-radius:5px; }
+  .badge{ display:inline-block; font-family:"JetBrains Mono", monospace; font-size:10.5px; letter-spacing:.06em;
+    text-transform:uppercase; padding:3px 8px; border-radius:999px; vertical-align:middle;
+    border:1px solid var(--line-2); color:var(--ink-faint); }
+  .badge.new{ color:var(--teal); border-color:color-mix(in srgb, var(--teal) 45%, transparent); }
+  .badge.soon{ color:var(--gold); border-color:color-mix(in srgb, var(--gold) 50%, transparent); }
+
+  .split{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:22px; margin-top:34px; align-items:start; }
+  .grid3{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-top:34px; }
+  .card{ background:var(--bg-2); border:1px solid var(--line); border-radius:14px; padding:22px; min-width:0; }
+  .card .k{ font-family:"JetBrains Mono", monospace; font-size:11.5px; color:var(--accent); letter-spacing:.06em; }
+  .card h3{ margin:8px 0 8px; font-family:"JetBrains Mono", monospace; font-size:1.05rem; font-weight:700; letter-spacing:-.02em; }
+  .card p{ color:var(--ink-soft); font-size:.95rem; }
+  .card ul{ list-style:none; margin-top:12px; display:grid; gap:7px; }
+  .card li{ font-size:.92rem; color:var(--ink-soft); padding-left:16px; position:relative; }
+  .card li::before{ content:""; position:absolute; left:0; top:.62em; width:6px; height:6px; border-radius:2px; background:var(--accent); }
+
+  .term{ background:var(--term); border:1px solid var(--line-2); border-radius:14px; overflow:hidden; box-shadow:var(--shadow); min-width:0; }
+  .term .bar{ display:flex; align-items:center; gap:7px; padding:11px 14px; border-bottom:1px solid #232937;
+    font-family:"JetBrains Mono", monospace; font-size:11.5px; color:#8a92a3; }
+  .term .bar i{ width:10px; height:10px; border-radius:50%; background:#2b3242; }
+  .term .bar span{ margin-left:8px; }
+  .term .bar .copy{ margin-left:auto; }
+  .term pre{ padding:16px 18px; font-size:12.8px; line-height:1.8; color:var(--term-ink); overflow-x:auto; }
+
+  /* install steps */
+  .steps{ list-style:none; margin-top:30px; counter-reset:s; display:grid; gap:0; }
+  .step{ display:grid; grid-template-columns:44px minmax(0,1fr); gap:14px; padding:20px 0; border-top:1px solid var(--line); }
+  .step:first-child{ border-top:0; padding-top:4px; }
+  .step .n{ font-family:"JetBrains Mono", monospace; font-size:12px; color:var(--accent); padding-top:4px; }
+  .step h3{ font-family:"JetBrains Mono", monospace; font-size:1rem; font-weight:700; letter-spacing:-.02em; }
+  .step p{ color:var(--ink-soft); font-size:.94rem; margin-top:8px; max-width:60ch; }
+  .line{ display:flex; align-items:center; gap:10px; margin-top:10px; background:var(--term); border:1px solid var(--line-2);
+    border-radius:10px; padding:8px 8px 8px 14px; min-width:0; }
+  .line pre{ flex:1; min-width:0; overflow-x:auto; font-size:13px; color:var(--term-ink); line-height:1.6; }
+
+  /* tree */
+  .tree pre{ color:var(--term-ink); }
+  .tree .d{ color:#7fd0c4; }
+  .tree .f{ color:#e6e1d6; }
+
+  /* commands table */
+  .tbl{ margin-top:22px; overflow-x:auto; border:1px solid var(--line); border-radius:14px; background:var(--bg-2); }
+  table{ width:100%; border-collapse:collapse; font-size:.93rem; }
+  th, td{ text-align:left; padding:12px 16px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:last-child td{ border-bottom:0; }
+  th{ font-family:"JetBrains Mono", monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint); font-weight:500; }
+  td{ color:var(--ink-soft); }
+  td:first-child{ white-space:nowrap; }
+
+  .chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+  .chip{ font-family:"JetBrains Mono", monospace; font-size:12px; padding:6px 11px; border-radius:999px;
+    border:1px solid var(--line-2); color:var(--ink-soft); background:var(--bg-2); }
+  .chip s{ color:var(--accent); text-decoration:line-through; text-decoration-thickness:2px; }
+
+  /* proof */
+  .bench{ margin-top:34px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+  .metric{ background:var(--bg-2); border:1px solid var(--line); border-radius:14px; padding:22px; }
+  .metric .v{ font-family:"JetBrains Mono", monospace; font-weight:700; font-size:clamp(2rem,5vw,2.8rem); letter-spacing:-.05em; line-height:1; }
+  .metric .v small{ font-size:.42em; letter-spacing:0; color:var(--ink-faint); font-weight:500; margin-left:4px; }
+  .metric .u{ margin-top:10px; font-family:"Instrument Serif", Georgia, serif; font-style:italic; font-size:1.3rem; color:var(--accent); }
+  .metric p{ margin-top:6px; font-size:.9rem; color:var(--ink-soft); }
+  .bars{ margin-top:16px; background:var(--bg-2); border:1px solid var(--line); border-radius:14px; padding:22px; }
+  .bars h3{ font-family:"JetBrains Mono", monospace; font-size:.95rem; letter-spacing:-.01em; }
+  .bar-row{ display:grid; grid-template-columns:200px 1fr 92px; gap:14px; align-items:center; margin-top:16px;
+    font-family:"JetBrains Mono", monospace; font-size:12.5px; color:var(--ink-soft); }
+  .bar-row .track{ height:12px; background:var(--bg-3); border-radius:999px; overflow:hidden; }
+  .bar-row .fill{ height:100%; border-radius:999px; background:var(--ink-faint); width:var(--w); }
+  .bar-row.us .fill{ background:var(--accent); }
+  .bar-row .val{ text-align:right; color:var(--ink); }
+  .js .bars .fill{ transform-origin:left; transform:scaleX(0); transition:transform 1.2s cubic-bezier(.2,.7,.2,1) .2s; }
+  .js section.sec.in .bars .fill{ transform:none; }
+  :root[data-motion="paused"] .bars .fill{ transition:none; }
+  .method{ margin-top:16px; font-size:.88rem; color:var(--ink-faint); max-width:78ch; }
+
+  /* layers */
+  .layers{ margin-top:30px; display:grid; gap:0; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--bg-2); }
+  .layer{ display:grid; grid-template-columns:70px 170px 1fr; gap:14px; padding:15px 20px; border-top:1px solid var(--line); align-items:baseline; }
+  .layer:first-child{ border-top:0; }
+  .layer .id{ font-family:"JetBrains Mono", monospace; font-size:12px; color:var(--accent); }
+  .layer .t{ font-family:"JetBrains Mono", monospace; font-size:.95rem; font-weight:700; }
+  .layer p{ color:var(--ink-soft); font-size:.93rem; }
+
+  /* app */
+  .app{ margin-top:34px; display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:22px; align-items:center; }
+  .window{ border:1px dashed var(--line-2); border-radius:16px; padding:18px; background:var(--bg-2); }
+  .window .dots{ display:flex; gap:7px; margin-bottom:16px; }
+  .window .dots i{ width:10px; height:10px; border-radius:50%; background:var(--line-2); }
+  .window .row{ height:10px; border-radius:6px; background:var(--bg-3); margin-top:10px; }
+  .window .row.a{ width:72%; background:color-mix(in srgb, var(--accent) 35%, var(--bg-3)); }
+  .window .row.b{ width:54%; } .window .row.c{ width:86%; } .window .row.d{ width:40%; }
+  .window .soon{ margin-top:18px; font-family:"Instrument Serif", Georgia, serif; font-style:italic; font-size:1.6rem; color:var(--gold); }
+
+  /* footer */
+  footer{ padding:70px 0 90px; }
+  .foot{ display:flex; flex-wrap:wrap; gap:28px; justify-content:space-between; align-items:flex-end; }
+  .foot .mark{ display:flex; align-items:center; gap:12px; font-family:"JetBrains Mono", monospace; font-weight:700; font-size:1.3rem; }
+  .foot .mark img{ width:36px; height:36px; }
+  .foot .tag{ margin-top:8px; font-family:"Instrument Serif", Georgia, serif; font-style:italic; font-size:1.5rem; color:var(--accent); }
+  .foot .by{ margin-top:8px; color:var(--ink-faint); font-size:.92rem; }
+  .foot-links{ display:flex; flex-wrap:wrap; gap:8px; }
+
+  @media (max-width:860px){
+    .split, .app, .grid3, .bench{ grid-template-columns:minmax(0,1fr); }
+    .codebg{ grid-template-columns:repeat(2,1fr); }
+    .codebg .col:nth-child(3){ display:none; }
+    .layer{ grid-template-columns:56px 1fr; }
+    .layer p{ grid-column:2; }
+    .bar-row{ grid-template-columns:1fr 84px; gap:8px 12px; }
+    .bar-row .lbl{ grid-column:1 / -1; }
+    .bar-row .track{ grid-column:1; }
   }
-
-  .reveal{ opacity:0; transform:translateY(14px); animation:rise .8s cubic-bezier(.2,.7,.2,1) forwards; }
-  @keyframes rise{ to{ opacity:1; transform:none; } }
-  section.sec{ opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1); }
-  section.sec.seen{ opacity:1; transform:none; }
-
-  /* ───────────────── hero ───────────────── */
-  .hero{ display:block; padding:84px 0 50px; border-bottom:2px solid var(--ink); }
-
-  .kicker{ display:flex; align-items:center; gap:13px; font-family:"IBM Plex Mono", monospace;
-    font-size:11px; letter-spacing:.32em; text-transform:uppercase; color:var(--vermilion); }
-  .kicker .logo-mark{ width:26px; height:26px; flex:none; display:block; transform:translateY(-1.5px); }
-  .kicker .sep{ color:var(--ink-faint); }
-  .kicker .who{ color:var(--ink-faint); }
-  .kicker .rule{ flex:1; height:1px; background:linear-gradient(90deg, var(--line-2), transparent); }
-  /* animated sprout in the kicker */
-  .sprout .sprout-top{ transform-box:fill-box; transform-origin:50% 100%; animation:sway 3.4s ease-in-out infinite; }
-  @keyframes sway{ 0%,100%{ transform:rotate(-5deg); } 50%{ transform:rotate(5deg); } }
-  .sprout .seed{ transform-box:fill-box; transform-origin:50% 50%; animation:seedpulse 2.4s ease-in-out infinite; }
-  @keyframes seedpulse{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.35); } }
-  @media (prefers-reduced-motion: reduce){ .sprout .sprout-top, .sprout .seed{ animation:none; } }
-
-  .wordmark{ font-family:"Fraunces", serif; font-weight:600; font-optical-sizing:auto;
-    font-size:clamp(4.2rem, 11vw, 7.4rem); line-height:.9; letter-spacing:-.02em;
-    margin:34px 0 0; color:var(--ink); }
-  .wordmark .seed{ color:var(--vermilion); }
-
-  .lede{ font-family:"Newsreader", serif; font-style:italic; font-size:clamp(1.25rem,2.5vw,1.7rem);
-    color:var(--ink-soft); margin-top:24px; max-width:30ch; line-height:1.3; }
-  .sub{ margin-top:20px; max-width:54ch; color:var(--ink-soft); font-size:1.03rem; }
-  .sub b{ color:var(--ink); font-weight:600; }
-
-  .hero-cta{ margin-top:26px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-  .btn-primary{ font-family:"IBM Plex Mono", monospace; font-size:12.5px; letter-spacing:.04em;
-    background:var(--ink); color:var(--paper); border:none; border-radius:9px; padding:12px 18px;
-    cursor:pointer; transition:transform .14s ease, background .14s ease; text-decoration:none; display:inline-block; }
-  .btn-primary:hover{ transform:translateY(-2px); background:#11161f; text-decoration:none; }
-  .btn-ghost{ font-family:"IBM Plex Mono", monospace; font-size:12.5px; color:var(--ink-soft);
-    border:1px solid var(--line-2); border-radius:9px; padding:12px 16px; text-decoration:none; transition:all .14s ease; }
-  .btn-ghost:hover{ color:var(--ink); border-color:var(--ink-faint); text-decoration:none; }
-
-  .hero, .sec{ scroll-margin-top:24px; }
-
-  /* finished footer */
-  .foot-logo{ display:flex; align-items:center; gap:11px; margin-bottom:14px; }
-  .foot-logo img{ width:38px; height:38px; display:block; transform:translateY(-2px); }
-  .foot-word{ font-family:"Fraunces", serif; font-weight:600; font-size:1.5rem; color:var(--ink); }
-  .foot-tag{ font-family:"Newsreader", serif; font-style:italic; font-size:1.15rem; color:var(--ink-soft); margin-bottom:24px; }
-
-  /* ───────────────── memory garden (small square) ───────────────── */
-  .hero-garden{ justify-self:center; width:100%; max-width:230px; }
-  /* no card: the plant sits directly on the page */
-  .garden{ position:relative; width:100%; max-width:230px; margin:0 auto;
-    display:flex; flex-direction:column; }
-  .garden svg{ display:block; width:46%; max-width:100px; height:auto; margin:0 auto; }
-
-  .controls{ margin-top:16px; }
-  .grow-btn{ width:100%; justify-content:center; font-family:"IBM Plex Mono", monospace;
-    font-size:11.5px; letter-spacing:.02em; background:var(--vermilion); color:#fff; border:none;
-    border-radius:9px; padding:9px 12px; cursor:pointer; display:inline-flex; align-items:center;
-    gap:7px; transition:transform .12s ease, box-shadow .2s ease; box-shadow:0 8px 18px -8px rgba(216,58,34,.7); }
-  .grow-btn:hover{ transform:translateY(-2px); }
-  .grow-btn:active{ transform:translateY(0) scale(.97); }
-  .grow-btn .plus{ font-size:14px; line-height:1; }
-  .meta{ display:flex; align-items:baseline; gap:7px; margin-top:9px; }
-  .count{ font-family:"Fraunces", serif; font-size:1.2rem; color:var(--ink); line-height:1; }
-  .meta-lbl{ font-family:"IBM Plex Mono", monospace; font-size:9.5px; color:var(--ink-faint);
-    text-transform:uppercase; letter-spacing:.12em; }
-  .overflow-note{ font-family:"IBM Plex Mono", monospace; font-size:9px; color:var(--leaf); }
-  .reset{ margin-left:auto; font-family:"IBM Plex Mono", monospace; font-size:10.5px; color:var(--ink-faint);
-    background:none; border:none; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
-  .reset:hover{ color:var(--vermilion); }
-  .latest{ display:flex; align-items:center; gap:7px; margin-top:8px; min-width:0; font-size:.78rem; color:var(--ink-soft); }
-  .latest .swatch{ width:9px; height:9px; border-radius:50% 50% 50% 0; transform:rotate(45deg); flex:none; }
-  .latest .lt{ font-family:"IBM Plex Mono", monospace; font-size:9px; text-transform:uppercase;
-    letter-spacing:.1em; color:var(--ink-faint); flex:none; }
-  .latest .lbl{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
-
-  /* plant pieces */
-  .stem{ fill:none; stroke:var(--leaf); stroke-width:4.5; stroke-linecap:round;
-    stroke-dasharray:150; stroke-dashoffset:150; animation:draw 1s .2s ease forwards; }
-  @keyframes draw{ to{ stroke-dashoffset:0; } }
-  .leaf{ stroke:var(--sketch); stroke-width:1; stroke-linejoin:round;
-    transform-box:fill-box; transform-origin:0% 55%; animation:leafGrow .5s cubic-bezier(.2,.85,.3,1.3) both; }
-  .vein{ fill:none; stroke:var(--sketch); stroke-width:.8; stroke-linecap:round; opacity:.45; }
-  @keyframes leafGrow{ from{ transform:scale(.04); opacity:0; } to{ transform:scale(1); opacity:1; } }
-  .petal{ stroke:var(--sketch); stroke-width:1; stroke-linejoin:round;
-    transform-box:fill-box; transform-origin:50% 92%; animation:bloom .55s cubic-bezier(.2,.85,.3,1.3) both; }
-  @keyframes bloom{ from{ transform:scale(.05); opacity:0; } to{ transform:scale(1); opacity:.95; } }
-  .heart{ animation:pop .4s ease both; }
-  @keyframes pop{ from{ transform:scale(.4); opacity:0; } to{ transform:scale(1); opacity:1; } }
-
-  /* ───────────────── sections ───────────────── */
-  section.sec{ padding:54px 0; border-bottom:1px solid var(--line); }
-  .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:.2em;
-    text-transform:uppercase; color:var(--ink-faint); margin-bottom:20px; display:flex; gap:11px; align-items:center; }
-  .eyebrow .n{ color:var(--vermilion); font-weight:600; }
-  h2{ font-family:"Fraunces", serif; font-weight:600; font-size:2.1rem; letter-spacing:-.01em; margin-bottom:8px; }
-
-  /* install */
-  .tabs{ display:flex; gap:6px; margin:8px 0 16px; }
-  .tabbtn{ font-family:"IBM Plex Mono", monospace; font-size:12px; padding:9px 15px; border-radius:9px;
-    border:1px solid var(--line-2); background:transparent; color:var(--ink-soft); cursor:pointer; transition:all .16s ease; }
-  .tabbtn:hover{ color:var(--ink); border-color:var(--ink-faint); }
-  .tabbtn.on{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
-  .cmd{ position:relative; background:#161b26; border-radius:12px; padding:17px 18px; margin:10px 0;
-    border:1px solid #20283a; box-shadow:0 10px 30px -16px rgba(28,34,48,.6); min-width:0; max-width:100%; }
-  .cmd pre{ font-family:"IBM Plex Mono", monospace; font-size:13.5px; color:#e8e2d4; overflow-x:auto;
-    line-height:1.9; padding-right:74px; max-width:100%; }
-  .cmd .prompt{ color:#f6a07a; user-select:none; }
-  .cmd .muted{ color:#7c869c; }
-  .copy{ position:absolute; top:10px; right:10px; font-family:"IBM Plex Mono", monospace; font-size:10.5px;
-    letter-spacing:.06em; text-transform:uppercase; padding:6px 10px; border-radius:7px; cursor:pointer;
-    background:#222a3c; border:1px solid #2f3a52; color:#c4cad8; transition:all .16s ease; }
-  .copy:hover{ color:#fff; border-color:var(--teal); }
-  .copy.done{ background:var(--teal); border-color:var(--teal); color:#fff; }
-  .note{ font-size:.92rem; color:var(--ink-soft); margin-top:10px; }
-  .note code{ font-family:"IBM Plex Mono", monospace; background:var(--paper-3); padding:1px 6px; border-radius:4px; font-size:.86em; }
-
-  /* numbered install steps */
-  .steps{ list-style:none; margin-top:10px; }
-  .step-row{ display:grid; grid-template-columns:32px 1fr; gap:16px; padding:20px 0; border-top:1px solid var(--line); }
-  .step-main{ min-width:0; }
-  .step-row:first-child{ border-top:none; padding-top:8px; }
-  .step-num{ width:32px; height:32px; border-radius:50%; background:var(--ink); color:var(--paper);
-    font-family:"Fraunces", serif; font-size:1.05rem; display:flex; align-items:center; justify-content:center; flex:none; }
-  .step-title{ font-family:"Fraunces", serif; font-size:1.25rem; font-weight:600; margin-bottom:8px; }
-  .cmd.mini{ padding:13px 16px; margin:4px 0 11px; }
-  .cmd.mini pre{ font-size:13px; line-height:1.4; padding-right:74px; }
-  .cmd.mini .copy{ top:50%; transform:translateY(-50%); }
-  .step-detail{ font-size:.95rem; color:var(--ink-soft); max-width:62ch; }
-  .step-detail b{ color:var(--ink); }
-  .step-detail code{ font-family:"IBM Plex Mono", monospace; background:var(--paper-3); padding:1px 5px; border-radius:4px; font-size:.84em; }
-  .step-detail.subtle{ margin-top:8px; font-size:.86rem; color:var(--ink-faint); }
-  .step-detail.subtle code{ background:none; padding:0; color:var(--ink-soft); }
-
-  /* why-it-matters lists */
-  .lead-p{ max-width:64ch; color:var(--ink-soft); font-size:1.04rem; margin-bottom:22px; }
-  .why-list{ list-style:none; display:flex; flex-direction:column; gap:11px; }
-  .why-list li{ font-size:.94rem; color:var(--ink-soft); padding-left:18px; position:relative; line-height:1.5; }
-  .why-list li::before{ content:""; position:absolute; left:0; top:.5em; width:7px; height:7px;
-    border-radius:50% 50% 50% 0; transform:rotate(45deg); background:var(--vermilion); }
-  .why-list b{ color:var(--ink); }
-  .why-list code{ font-family:"IBM Plex Mono", monospace; background:var(--paper-3); padding:1px 5px; border-radius:4px; font-size:.85em; }
-
-  /* lifecycle cards */
-  .grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:15px; margin-top:8px; }
-  .card{ background:var(--paper-2); border:1px solid var(--line); border-radius:13px; padding:19px 20px; transition:transform .18s ease, box-shadow .18s ease; }
-  .card:hover{ transform:translateY(-3px); box-shadow:0 16px 34px -22px rgba(28,34,48,.5); }
-  .card .step{ font-family:"IBM Plex Mono", monospace; font-size:11px; color:var(--vermilion); letter-spacing:.1em; }
-  .card h3{ font-family:"Fraunces", serif; font-size:1.32rem; font-weight:600; margin:6px 0 7px; }
-  .card h3 code{ font-family:"IBM Plex Mono", monospace; font-size:.74em; color:var(--teal); background:var(--paper-3); padding:2px 8px; border-radius:6px; }
-  .card p{ font-size:.95rem; color:var(--ink-soft); }
-
-  /* anatomy */
-  .anatomy{ display:grid; grid-template-columns:1fr; gap:15px; }
-  .filecard{ background:#fbf8f0; border:1px solid var(--line-2); border-radius:13px; overflow:hidden;
-    box-shadow:0 8px 26px -18px rgba(28,34,48,.4); }
-  .filecard .bar{ display:flex; align-items:center; gap:9px; padding:10px 15px; background:var(--paper-3);
-    border-bottom:1px solid var(--line-2); font-family:"IBM Plex Mono", monospace; font-size:11.5px; color:var(--ink-soft); }
-  .filecard .bar .dot{ width:9px; height:9px; border-radius:50% 50% 50% 0; transform:rotate(45deg); }
-  .filecard pre{ padding:17px 19px; font-family:"IBM Plex Mono", monospace; font-size:12.5px; line-height:1.75; color:var(--ink); overflow-x:auto; }
-  .fm{ color:var(--ink-faint); } .key{ color:var(--vermilion); } .val{ color:var(--teal); }
-
-  table{ width:100%; border-collapse:collapse; margin-top:6px; font-size:.95rem; }
-  th, td{ text-align:left; padding:12px; border-bottom:1px solid var(--line); }
-  th{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint); }
-  td code{ font-family:"IBM Plex Mono", monospace; color:var(--vermilion); font-size:.92em; }
-
-  footer{ padding:46px 0 90px; }
-  .stamp{ font-family:"Fraunces", serif; font-style:italic; font-size:1.7rem; }
-  .stamp b{ font-style:normal; font-weight:600; color:var(--vermilion); }
-  .madeby{ margin-top:11px; color:var(--ink-soft); font-size:.97rem; }
-  .madeby a{ font-weight:600; }
-  .foot-links{ margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
-  .pill{ font-family:"IBM Plex Mono", monospace; font-size:11.5px; padding:9px 14px; border-radius:30px;
-    border:1px solid var(--line-2); color:var(--ink-soft); display:inline-flex; align-items:center; gap:7px; }
-  .pill:hover{ border-color:var(--vermilion); color:var(--ink); text-decoration:none; }
-  .pill .ic{ color:var(--vermilion); }
-
-  @media (max-width:780px){
-    .hero{ grid-template-columns:1fr; padding-top:64px; gap:36px; }
-    .hero-garden{ order:-1; max-width:340px; }
-    .grid{ grid-template-columns:1fr; }
-    .wordmark{ font-size:clamp(3.6rem,18vw,5rem); margin-top:26px; }
+  @media (max-width:720px){
+    .nav .hide-sm{ display:none; }
+  }
+  @media (max-width:520px){
+    .wrap{ padding:0 16px; }
+    .codebg{ padding:0 16px; grid-template-columns:1fr; }
+    .codebg .col:nth-child(2){ display:none; }
+    .hero{ padding:118px 0 54px; }
+    .hero::after{ background:color-mix(in srgb, var(--bg) 84%, transparent); }
+    .install .bar span{ display:none; }
+    section.sec{ padding:64px 0; }
+    .install pre{ font-size:12px; padding:12px 14px 14px; }
+    .term pre{ font-size:11.8px; padding:14px; }
+    .line pre{ font-size:12px; }
+    .card, .metric, .bars{ padding:18px; }
+    .step{ grid-template-columns:30px minmax(0,1fr); gap:10px; }
+    .nav a, .nav button{ padding:7px 9px; }
+    .nav .icon{ width:30px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    .btn, .copy{ transition:none; }
   }
 </style>
 </head>
 
-<body x-data="trovesite()">
+<body>
+<a class="skip" href="#main">Skip to content</a>
 
-<div class="pollen" aria-hidden="true">
-  <i style="left:8%;  animation-duration:22s; animation-delay:0s"></i>
-  <i style="left:20%; animation-duration:28s; animation-delay:4s"></i>
-  <i style="left:33%; animation-duration:19s; animation-delay:9s"></i>
-  <i style="left:52%; animation-duration:25s; animation-delay:2s"></i>
-  <i style="left:66%; animation-duration:31s; animation-delay:7s"></i>
-  <i style="left:78%; animation-duration:21s; animation-delay:12s"></i>
-  <i style="left:90%; animation-duration:27s; animation-delay:5s"></i>
-</div>
+<nav class="nav" aria-label="Primary">
+  <a class="brand" href="#top" aria-label="Trove, back to top">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 14h12l-1.6 7H7.6z" fill="#c0613a"/>
+      <rect x="5" y="12.4" width="14" height="2.7" rx="1" fill="#d2724a"/>
+      <path d="M12 13V6" stroke="#5cc0b5" stroke-width="1.7" stroke-linecap="round" fill="none"/>
+      <path d="M12 9C9 9 7.4 7.1 7.4 7.1 10 6.6 12 8 12 9Z" fill="#5b9c6a"/>
+      <path d="M12 8c3 0 4.6-1.9 4.6-1.9C14 5.5 12 7 12 8Z" fill="#7cb98a"/>
+      <circle cx="12" cy="5" r="1.8" fill="#ff6a45"/>
+    </svg>
+    <span>trove</span>
+  </a>
+  <span class="div hide-sm" aria-hidden="true"></span>
+  <a class="hide-sm" href="#skills" data-nav>skills</a>
+  <a class="hide-sm" href="#cli" data-nav>cli</a>
+  <a class="hide-sm" href="#ship" data-nav>ship</a>
+  <a class="hide-sm" href="#proof" data-nav>proof</a>
+  <a class="hide-sm" href="#app" data-nav>app</a>
+  <span class="div" aria-hidden="true"></span>
+  <button class="icon" id="motion" type="button" aria-pressed="false" aria-label="Pause background motion" title="Pause motion">
+    <svg class="ico-pause" viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="3" width="2.6" height="10" rx="1" fill="currentColor"/><rect x="9.4" y="3" width="2.6" height="10" rx="1" fill="currentColor"/></svg>
+    <svg class="ico-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.2v9.6c0 .5.5.8.9.5l7.2-4.8a.6.6 0 0 0 0-1L5.9 2.7c-.4-.3-.9 0-.9.5Z" fill="currentColor"/></svg>
+  </button>
+  <button class="icon" id="theme" type="button" aria-label="Switch to light theme" title="Toggle theme">
+    <svg class="ico-moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 9.6A5.8 5.8 0 0 1 6.4 2.5a5.8 5.8 0 1 0 7.1 7.1Z" fill="currentColor"/></svg>
+    <svg class="ico-sun" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3.1" fill="currentColor"/><g stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M8 1.2v1.6M8 13.2v1.6M1.2 8h1.6M13.2 8h1.6M3.2 3.2l1.1 1.1M11.7 11.7l1.1 1.1M3.2 12.8l1.1-1.1M11.7 4.3l1.1-1.1"/></g></svg>
+  </button>
+  <a class="icon hide-sm" href="https://github.com/anishfyi/trove" aria-label="Trove on GitHub" title="GitHub">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+  </a>
+  <a class="cta" href="#install">install</a>
+</nav>
 
+<!-- ───────── hero ───────── -->
+<header class="hero" id="top">
+  <div class="codebg" aria-hidden="true">
+    <div class="col"><div class="reel" data-reel="0"></div></div>
+    <div class="col"><div class="reel" data-reel="1"></div></div>
+    <div class="col"><div class="reel" data-reel="2"></div></div>
+  </div>
+
+  <div class="wrap hero-inner">
+    <div class="kicker">
+      <span class="tag">v0.3 in the works</span>
+      <span>open source</span><span aria-hidden="true">/</span><span>MIT</span><span aria-hidden="true">/</span><span>Rust + Claude Code</span>
+    </div>
+    <h1>
+      <span class="l1">Memory for coding agents.</span>
+      <span class="l2">Beyond the context window.</span>
+    </h1>
+    <p class="lede">
+      Trove is the open-source <b>memory, semantic and context layer</b> for coding agents.
+      A Rust engine indexes your repo into layered memory. A Claude Code plugin keeps your
+      decisions, conventions and gotchas, and loads them as <b>skills</b> every session.
+    </p>
+
+    <div class="install" role="group" aria-labelledby="install-title">
+      <div class="bar">
+        <b id="install-title">Install in two lines</b><span>inside Claude Code</span>
+        <button class="copy" type="button" data-copy="/plugin marketplace add anishfyi/trove&#10;/plugin install trove@velofy-trove">Copy</button>
+      </div>
+<pre><span class="p">/plugin</span> marketplace add anishfyi/trove
+<span class="p">/plugin</span> install trove@velofy-trove</pre>
+    </div>
+    <p class="after">Then <code>/reload-plugins</code> and <code>/trove:init</code>. Full walkthrough in <a href="#install">01 Install</a>.</p>
+
+    <div class="hero-links">
+      <a class="btn" href="https://github.com/anishfyi/trove">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 .5l2.3 4.7 5.2.7-3.8 3.6.9 5.1L8 12.2l-4.6 2.4.9-5.1L.5 5.9l5.2-.7L8 .5Z"/></svg>
+        Star on GitHub
+      </a>
+      <a class="btn" href="#proof">See the numbers</a>
+    </div>
+
+    <div class="stats" aria-label="Measured on this repository">
+      <a href="#proof"><b>33x</b>fewer tokens than raw source</a>
+      <a href="#proof"><b>4 ms</b>per query</a>
+      <a href="#proof"><b>0.13 s</b>to index the repo</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
 <div class="wrap">
 
-  <!-- ───────── hero ───────── -->
-  <header class="hero" id="top">
-    <div class="hero-copy reveal">
-      <div class="kicker">
-        <svg class="logo-mark sprout" viewBox="0 0 24 24" role="img" aria-label="Trove">
-          <path d="M6 14h12l-1.6 7H7.6z" fill="#c0613a"/>
-          <rect x="5" y="12.4" width="14" height="2.7" rx="1" fill="#d2724a"/>
-          <g class="sprout-top">
-            <path d="M12 13V6" stroke="#2f6f6a" stroke-width="1.7" stroke-linecap="round" fill="none"/>
-            <path d="M12 9C9 9 7.4 7.1 7.4 7.1 10 6.6 12 8 12 9Z" fill="#5b9c6a"/>
-            <path d="M12 8c3 0 4.6-1.9 4.6-1.9C14 5.5 12 7 12 8Z" fill="#7cb98a"/>
-            <circle class="seed" cx="12" cy="5" r="1.8" fill="#d83a22"/>
-          </g>
-        </svg>
-        <span>Trove</span><span class="sep">·</span><span class="who">v0.2</span>
-        <span class="rule"></span>
-      </div>
-      <h1 class="wordmark">Trove<span class="seed">.</span></h1>
-      <p class="lede">Higher information density, not larger prompts.</p>
-      <p class="sub">
-        Trove makes LLMs operate over repositories far larger than their context window.
-        The <b>Rust engine</b> indexes symbols, modules, and architecture into <code>.trove/</code>.
-        The <b>Claude Code plugin</b> captures decisions, gotchas, and conventions in a personal
-        trove that <b>reloads every session</b>.
-      </p>
-      <div class="hero-cta">
-        <a class="btn-primary" href="#engine">Try the engine</a>
-        <a class="btn-ghost" href="#install">Install plugin</a>
-        <a class="btn-ghost" href="https://github.com/anishfyi/trove/releases/tag/v0.2.0">v0.2.0 release</a>
-      </div>
+  <!-- ───────── 01 install ───────── -->
+  <section class="sec" id="install">
+    <div class="rv">
+      <div class="num"><b>01</b> Install</div>
+      <h2>Two lines to install. <em>Two more to start remembering.</em></h2>
+      <p class="intro">Run these one at a time inside Claude Code. The engine is a separate Rust CLI you can build from source in a minute.</p>
     </div>
 
-
-  </header>
-
-  <!-- ───────── engine ───────── -->
-  <section class="sec" id="engine" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
-    <div class="eyebrow"><span class="n">01</span> Engine</div>
-    <h2>Index any repository</h2>
-    <p class="lead-p">
-      The Trove engine parses your codebase into a memory hierarchy: symbols, per-file module
-      summaries, subsystem clusters, and an architecture map. Retrieval flows top-down and stops
-      when it has enough detail.
-    </p>
-    <div class="cmd">
-      <button class="copy" :class="{done: copied==='e1'}" @click="copy('e1', engineCmd)" x-text="copied==='e1' ? 'Copied' : 'Copy'"></button>
-      <pre><span class="muted"># requires Rust</span>
-git clone https://github.com/anishfyi/trove && cd trove
-cargo build -p trove-cli
-cargo run -p trove-cli -- index
-cargo run -p trove-cli -- query "modify vendor onboarding"</pre>
-    </div>
-    <div class="grid" style="margin-top:18px">
-      <div class="card">
-        <div class="step">L1-L4</div>
-        <h3>Memory layers</h3>
-        <p>Symbols, modules, subsystems, architecture. Hash-tracked, incremental rebuilds. Output in <code>.trove/</code> (gitignored).</p>
-      </div>
-      <div class="card">
-        <div class="step">RETRIEVE</div>
-        <h3>Progressive context</h3>
-        <p>Query with natural language. Get architecture first, then drill into modules and symbols only if needed. Respects a context budget.</p>
-      </div>
-    </div>
-    <p class="note" style="margin-top:14px">See <a href="VISION.md">VISION.md</a> for the full L0-L6 design.</p>
-  </section>
-
-  <!-- ───────── install ───────── -->
-  <section class="sec" id="install" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
-    <div class="eyebrow"><span class="n">02</span> Plugin</div>
-    <h2>Add it to Claude Code</h2>
-
-    <div class="tabs">
-      <button class="tabbtn" :class="{on: tab==='plugin'}" @click="tab='plugin'">Plugin (recommended)</button>
-      <button class="tabbtn" :class="{on: tab==='manual'}" @click="tab='manual'">Manual</button>
-    </div>
-
-    <div x-show="tab==='plugin'">
-      <p class="note" style="margin:0 0 6px">Run these one at a time inside Claude Code, top to bottom.</p>
-      <ol class="steps">
-
-        <li class="step-row">
-          <div class="step-num">1</div>
-          <div class="step-main">
-            <h3 class="step-title">Add the marketplace</h3>
-            <div class="cmd mini">
-              <button class="copy" :class="{done: copied==='s1'}" @click="copy('s1', '/plugin marketplace add anishfyi/trove')" x-text="copied==='s1' ? 'Copied' : 'Copy'"></button>
-              <pre><span class="prompt">/plugin</span> marketplace add anishfyi/trove</pre>
-            </div>
-            <p class="step-detail">
-              A marketplace is just a Git repo that lists installable plugins. This points Claude Code
-              at Trove's repo so it knows where to fetch the plugin from. Nothing is installed yet.
-            </p>
-            <p class="step-detail subtle">
-              Hit an SSH <code>Permission denied (publickey)</code> error? You have no SSH key on GitHub,
-              so use the HTTPS URL instead: <code>/plugin marketplace add https://github.com/anishfyi/trove.git</code>
-            </p>
+    <div class="split">
+      <ol class="steps rv">
+        <li class="step">
+          <span class="n">1.1</span>
+          <div>
+            <h3>Add the marketplace</h3>
+            <div class="line"><pre><span class="p">/plugin</span> marketplace add anishfyi/trove</pre><button class="copy" type="button" data-copy="/plugin marketplace add anishfyi/trove">Copy</button></div>
+            <p>SSH error? Use <code>https://github.com/anishfyi/trove.git</code> instead.</p>
           </div>
         </li>
-
-        <li class="step-row">
-          <div class="step-num">2</div>
-          <div class="step-main">
-            <h3 class="step-title">Install the plugin</h3>
-            <div class="cmd mini">
-              <button class="copy" :class="{done: copied==='s2'}" @click="copy('s2', '/plugin install trove@velofy-trove')" x-text="copied==='s2' ? 'Copied' : 'Copy'"></button>
-              <pre><span class="prompt">/plugin</span> install trove@velofy-trove</pre>
-            </div>
-            <p class="step-detail">
-              Pulls the Trove plugin from that marketplace: five skills (<code>init</code>,
-              <code>remember</code>, <code>recall</code>, <code>index</code>, <code>query</code>) plus
-              SessionStart and SessionEnd hooks. Read it as
-              <b>plugin@marketplace</b>, so <code>trove</code> is the plugin and <code>velofy-trove</code>
-              is the marketplace you just added.
-            </p>
+        <li class="step">
+          <span class="n">1.2</span>
+          <div>
+            <h3>Install the plugin</h3>
+            <div class="line"><pre><span class="p">/plugin</span> install trove@velofy-trove</pre><button class="copy" type="button" data-copy="/plugin install trove@velofy-trove">Copy</button></div>
+            <p>Skills plus SessionStart and SessionEnd hooks. Read it as plugin@marketplace.</p>
           </div>
         </li>
-
-        <li class="step-row">
-          <div class="step-num">3</div>
-          <div class="step-main">
-            <h3 class="step-title">Reload so it activates</h3>
-            <div class="cmd mini">
-              <button class="copy" :class="{done: copied==='s3'}" @click="copy('s3', '/reload-plugins')" x-text="copied==='s3' ? 'Copied' : 'Copy'"></button>
-              <pre><span class="prompt">/reload-plugins</span></pre>
-            </div>
-            <p class="step-detail">
-              A freshly installed plugin is <b>not live until you reload</b>. This activates Trove's
-              skills and hook in your current session. Confirm it landed with <code>/plugin list</code>,
-              and type <code>/trove:</code> to see the new commands appear. The auto-load hook starts
-              firing from your <b>next new session</b> onward.
-            </p>
+        <li class="step">
+          <span class="n">1.3</span>
+          <div>
+            <h3>Reload, then create your trove</h3>
+            <div class="line"><pre><span class="p">/reload-plugins</span>
+<span class="p">/trove:init</span></pre><button class="copy" type="button" data-copy="/reload-plugins&#10;/trove:init">Copy</button></div>
+            <p>From here say <i>"remember this"</i> or run <code>/trove:remember</code>, and <code>/trove:recall</code> to search it back.</p>
           </div>
         </li>
-
-        <li class="step-row">
-          <div class="step-num">4</div>
-          <div class="step-main">
-            <h3 class="step-title">Create your trove</h3>
-            <div class="cmd mini">
-              <button class="copy" :class="{done: copied==='s4'}" @click="copy('s4', '/trove:init')" x-text="copied==='s4' ? 'Copied' : 'Copy'"></button>
-              <pre><span class="prompt">/trove:init</span></pre>
-            </div>
-            <p class="step-detail">
-              Scaffolds your trove at <code>~/.claude/trove</code> (or per project): an
-              <code>INDEX.md</code> and an <code>entries/</code> folder. That is the whole setup. From
-              here, say <b>"remember this"</b> or run <code>/trove:remember</code> to capture a fact,
-              and <code>/trove:recall</code> to search it back.
-            </p>
-          </div>
-        </li>
-
       </ol>
-    </div>
 
-    <div x-show="tab==='manual'" x-cloak>
-      <div class="cmd">
-        <button class="copy" :class="{done: copied==='m1'}" @click="copy('m1', manual)" x-text="copied==='m1' ? 'Copied' : 'Copy'"></button>
-        <pre><span class="muted"># skills only (no auto-load hook)</span>
-git clone https://github.com/anishfyi/trove /tmp/trove
-cp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/</pre>
+      <div class="term rv">
+        <div class="bar"><i></i><i></i><i></i><span>engine, from source</span>
+          <button class="copy" type="button" data-copy="git clone https://github.com/anishfyi/trove && cd trove&#10;cargo build --release -p trove-cli&#10;./target/release/trove index&#10;./target/release/trove query &quot;how does progressive retrieval respect the context budget&quot;">Copy</button>
+        </div>
+<pre><span class="c"># requires Rust</span>
+<span class="p">$</span> git clone https://github.com/anishfyi/trove && cd trove
+<span class="p">$</span> cargo build --release -p trove-cli
+<span class="p">$</span> ./target/release/trove index
+<span class="g">Indexed 50 files, 203 symbols, 50 modules, 2 subsystems</span>
+<span class="p">$</span> ./target/release/trove query "how does progressive retrieval respect the context budget"
+<span class="y">## L4 Architecture Memory</span>
+<span class="y">## L3 Subsystem Memory</span>  crates
+<span class="y">## L2 Module Memory</span>     crates/trove-retrieve/src/budget.rs
+<span class="c">Estimated tokens: 669 / 200000</span></pre>
       </div>
-      <p class="note">
-        Copies the three skills into <code>~/.claude/skills/</code> so you get <code>/init</code>,
-        <code>/remember</code> and <code>/recall</code>. The automatic session-load hook only ships
-        with the plugin install above.
+    </div>
+  </section>
+
+  <!-- ───────── 02 project skills ───────── -->
+  <section class="sec" id="skills">
+    <div class="rv">
+      <div class="num"><b>02</b> Project skills <span class="badge new">v0.3</span></div>
+      <h2>Every project gets a trove. <em>Loaded as three skills.</em></h2>
+      <p class="intro">
+        Each repo where an agent works keeps its own trove under <code>.claude/trove/</code>. Trove renders it into
+        three skills that Claude Code lists and loads on intent, and an <code>AGENTS.md</code> pointer lets Codex,
+        Cursor and pi read the same files.
       </p>
     </div>
-  </section>
 
-  <!-- ───────── how it works ───────── -->
-  <section class="sec" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
-    <div class="eyebrow"><span class="n">03</span> How it works</div>
-    <h2>Two layers, one system</h2>
-    <div class="grid">
+    <div class="grid3 rv">
       <div class="card">
-        <div class="step">ENGINE</div>
-        <h3>Index <code>trove index</code></h3>
-        <p>Parses the repo into symbols, module summaries, subsystem clusters, and an architecture map. Stored in <code>.trove/</code>.</p>
+        <div class="k">conventions</div>
+        <h3>How this repo is built</h3>
+        <p>Style, structure, naming, commit and PR rules, and the things to never do.</p>
       </div>
       <div class="card">
-        <div class="step">ENGINE</div>
-        <h3>Query <code>trove query</code></h3>
-        <p>Progressive retrieval: architecture, then subsystem, module, symbol. Stops when enough context is assembled.</p>
+        <div class="k">memory</div>
+        <h3>What we decided, and why</h3>
+        <p>Decisions, gotchas and history. <code>/trove:remember</code> routes each entry to the right place.</p>
       </div>
       <div class="card">
-        <div class="step">PLUGIN</div>
-        <h3>Capture <code>/trove:remember</code></h3>
-        <p>Distills a decision, gotcha, or convention into one atomic entry and updates the index.</p>
-      </div>
-      <div class="card">
-        <div class="step">PLUGIN</div>
-        <h3>Auto-load <span style="font-style:italic;font-family:Newsreader,serif">every session</span></h3>
-        <p>SessionStart injects your personal trove index. SessionEnd prompts reflection and re-index reminders.</p>
+        <div class="k">context</div>
+        <h3>The current map</h3>
+        <p>Architecture, subsystems and key modules from the engine, refreshed by <code>/trove:index</code>.</p>
       </div>
     </div>
-  </section>
 
-  <!-- ───────── why it speeds you up ───────── -->
-  <section class="sec" id="why" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
-    <div class="eyebrow"><span class="n">04</span> Why it matters</div>
-    <h2>Why it speeds you up</h2>
-    <p class="lead-p">
-      Every Claude Code session normally starts from zero: you re-explain the codebase, the
-      conventions, the decisions you already made. Trove ends that. What you teach it once it knows
-      for good, so each session begins further ahead than the last.
-    </p>
-    <div class="grid">
-      <div class="card">
-        <h3>It paces up your work</h3>
-        <ul class="why-list">
-          <li><b>Stop re-explaining.</b> Claude opens each session already aware of your decisions, conventions and gotchas. No daily "here is how this repo works" preamble.</li>
-          <li><b>Stop repeating mistakes.</b> A footgun you hit once is written down, so Claude does not walk into it a second time.</li>
-          <li><b>Decide faster.</b> Past decisions and their rationale are one recall away, so you do not re-litigate or contradict yourself.</li>
-          <li><b>Onboard instantly.</b> A new machine, or a teammate on a project-scope trove, inherits all the accumulated knowledge at once.</li>
-          <li><b>Compounding returns.</b> Teach it once, benefit every session after. The longer you use it, the more leverage it has.</li>
-        </ul>
+    <div class="split">
+      <div class="term tree rv">
+        <div class="bar"><i></i><i></i><i></i><span>your-app/</span></div>
+<pre><span class="d">.claude/trove/</span>
+├── <span class="d">conventions/</span>INDEX.md
+├── <span class="d">memory/</span>INDEX.md
+└── <span class="d">context/</span>INDEX.md
+<span class="d">.claude/skills/</span>
+├── <span class="d">your-app-conventions/</span>SKILL.md
+├── <span class="d">your-app-memory/</span>SKILL.md
+└── <span class="d">your-app-context/</span>SKILL.md
+AGENTS.md  <span class="c"># same files, any agent</span></pre>
       </div>
-      <div class="card">
-        <h3>Why the index is the engine</h3>
-        <ul class="why-list">
-          <li><b>It is what loads every session.</b> The <code>INDEX.md</code> (one compact line per entry) is injected into context at session start, so Claude knows <i>everything it has</i> without paying to load every full file.</li>
-          <li><b>It keeps recall fast and cheap.</b> Claude scans the index, then opens only the handful of entries that matter, instead of dumping the whole trove into the prompt.</li>
-          <li><b>It is your map.</b> Human-readable, skimmable and prunable, like a notebook's table of contents you can edit by hand.</li>
-          <li><b>Hooks make it findable.</b> Each one-line entry is written to match intent, which is the difference between a pile of files and a memory you can actually use.</li>
+      <div class="card rv">
+        <div class="k">why it speeds you up</div>
+        <ul>
+          <li><b>Stop re-explaining.</b> Sessions open already aware of your conventions and past decisions.</li>
+          <li><b>Stop repeating mistakes.</b> A footgun you hit once is written down for good.</li>
+          <li><b>Onboard instantly.</b> A teammate or a new machine inherits the project trove with the repo.</li>
+          <li><b>Secret-guarded.</b> Writes are checked so tokens and keys never land in a trove.</li>
         </ul>
       </div>
     </div>
   </section>
 
-  <!-- ───────── anatomy ───────── -->
-  <section class="sec" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
-    <div class="eyebrow"><span class="n">05</span> Anatomy of an entry</div>
-    <h2>One fact, one file. Markdown or JSON.</h2>
-    <p class="lead-p">
-      Each entry is a single file, and Claude picks the format that fits what it is storing:
-      <b>Markdown</b> for prose (decisions, gotchas, conventions) and <b>JSON</b> for structured
-      context (mappings, lists of records, config, schemas). The index lists them side by side.
-    </p>
-    <div class="anatomy">
-      <div class="filecard">
-        <div class="bar"><span class="dot" style="background:var(--teal)"></span> entries/use-pgx-not-orm.md <span style="margin-left:auto;color:var(--ink-faint)">prose &rarr; Markdown</span></div>
-        <pre><span class="fm">---</span>
-<span class="key">title:</span> <span class="val">Use pgx + sqlc, not a heavy ORM, in Go services</span>
-<span class="key">slug:</span> <span class="val">use-pgx-not-orm</span>
-<span class="key">type:</span> <span class="val">decision</span>
-<span class="key">created:</span> <span class="val">2026-06-13</span>
-<span class="key">tags:</span> <span class="val">[go, postgres, data-layer]</span>
-<span class="fm">---</span>
+  <!-- ───────── 03 cli ───────── -->
+  <section class="sec" id="cli">
+    <div class="rv">
+      <div class="num"><b>03</b> The CLI <span class="badge new">v0.3</span></div>
+      <h2>One command for what you know. <em>And every tool you have.</em></h2>
+      <p class="intro">
+        <code>trove</code> is a dense, single entry point on macOS and Linux. Ask a question and get an answer grounded in
+        your personal trove, the project trove, the engine index and a catalog of every CLI on your <code>$PATH</code>,
+        with citations. Retrieval-only mode works offline; an LLM step is opt-in.
+      </p>
+    </div>
 
-We standardised on pgx for the driver and sqlc to generate
-type-safe query code from plain SQL. GORM was rejected for
-hiding query cost behind reflection.
+    <div class="split">
+      <div class="term rv">
+        <div class="bar"><i></i><i></i><i></i><span>zsh</span></div>
+<pre><span class="p">$</span> trove ask "where is the context budget enforced?"
+<span class="g">ContextBudget::for_total</span> splits the budget by layer;
+the pipeline stops once it has enough detail.
+  <span class="c">[1]</span> crates/trove-retrieve/src/budget.rs
+  <span class="c">[2]</span> crates/trove-retrieve/src/pipeline.rs
+  <span class="c">[3]</span> memory/why-architecture-first.md
 
-<span class="key">**Why it matters:**</span> reach for this on any new Go service.
-<span class="key">**Related:**</span> [[deploy-single-binary]]</pre>
+<span class="p">$</span> trove tools search json
+  <span class="y">jq</span>        command-line JSON processor
+  <span class="y">gron</span>      make JSON greppable
+  <span class="y">fx</span>        terminal JSON viewer</pre>
       </div>
-      <div class="filecard">
-        <div class="bar"><span class="dot" style="background:var(--gold)"></span> entries/service-ports.json <span style="margin-left:auto;color:var(--ink-faint)">structured &rarr; JSON</span></div>
-        <pre>{
-  <span class="key">"title"</span>: <span class="val">"Local service ports"</span>,
-  <span class="key">"slug"</span>: <span class="val">"service-ports"</span>,
-  <span class="key">"type"</span>: <span class="val">"reference"</span>,
-  <span class="key">"created"</span>: <span class="val">"2026-06-14"</span>,
-  <span class="key">"tags"</span>: <span class="val">["infra", "ports"]</span>,
-  <span class="key">"summary"</span>: <span class="val">"which service runs on which port"</span>,
-  <span class="key">"data"</span>: {
-    <span class="key">"web"</span>: <span class="val">8000</span>,
-    <span class="key">"trove-ui"</span>: <span class="val">8010</span>,
-    <span class="key">"partners"</span>: <span class="val">8011</span>
-  }
-}</pre>
-      </div>
-      <div class="filecard">
-        <div class="bar"><span class="dot" style="background:var(--vermilion)"></span> INDEX.md <span style="margin-left:auto;color:var(--ink-faint)">both, side by side</span></div>
-        <pre><span class="fm"># Trove Index</span>
-
-- [Use pgx + sqlc, not a heavy ORM](entries/use-pgx-not-orm.md) - Go data-layer decision
-- [Local service ports](entries/service-ports.json) - infra reference (JSON)
-- [Staging DB mirrors prod nightly](entries/staging-db-mirror.md) - gotcha, do not seed</pre>
+      <div class="tbl rv">
+        <table>
+          <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><code>trove</code></td><td>Interactive REPL over everything you know.</td></tr>
+            <tr><td><code>trove ask</code></td><td>Answer one question with cited sources.</td></tr>
+            <tr><td><code>trove tools</code></td><td>List, search and describe installed CLIs.</td></tr>
+            <tr><td><code>trove index</code></td><td>Index the repo into memory layers.</td></tr>
+            <tr><td><code>trove query</code></td><td>Progressive retrieval within a token budget.</td></tr>
+            <tr><td><code>--json</code></td><td>Machine output for agents.</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </section>
 
-  <!-- ───────── commands ───────── -->
-  <section class="sec" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}">
-    <div class="eyebrow"><span class="n">06</span> Commands</div>
-    <h2>The whole surface</h2>
-    <table>
-      <thead><tr><th>Command</th><th>What it does</th></tr></thead>
-      <tbody>
-        <tr><td><code>trove index</code></td><td>Index the repo into memory layers (CLI).</td></tr>
-        <tr><td><code>trove query</code></td><td>Progressive retrieval with a context budget (CLI).</td></tr>
-        <tr><td><code>/trove:init</code></td><td>Create the personal trove (user or project scope).</td></tr>
-        <tr><td><code>/trove:remember</code></td><td>Capture a durable learning as a new entry.</td></tr>
-        <tr><td><code>/trove:recall</code></td><td>Search the trove and answer from it.</td></tr>
-        <tr><td><code>/trove:index</code></td><td>Index the repo via the engine (plugin skill).</td></tr>
-        <tr><td><code>/trove:query</code></td><td>Retrieve layered context before editing (plugin skill).</td></tr>
-        <tr><td><code>SessionStart hook</code></td><td>Loads the personal index into context each session.</td></tr>
-      </tbody>
-    </table>
-    <p class="note">
-      The skills also auto-trigger on intent: say "remember this in my trove" or "what do I know
-      about X" and the right skill fires without typing the command.
+  <!-- ───────── 04 ship ───────── -->
+  <section class="sec" id="ship">
+    <div class="rv">
+      <div class="num"><b>04</b> Docs shipping <span class="badge new">v0.3</span></div>
+      <h2>Hand off the docs. <em>Keep the secrets.</em></h2>
+      <p class="intro">
+        <code>trove ship</code> turns a project and its trove into handoff-ready developer docs: overview, architecture,
+        setup, conventions, decisions and gotchas. A redaction pass runs before anything leaves your machine, and it
+        fails closed if a high-confidence secret survives. Also available as <code>/trove:ship</code> inside an agent session.
+      </p>
+      <div class="chips" aria-label="What gets stripped">
+        <span class="chip"><s>secrets and tokens</s></span>
+        <span class="chip"><s>emails</s></span>
+        <span class="chip"><s>phone numbers</s></span>
+        <span class="chip"><s>internal hosts and IPs</s></span>
+        <span class="chip"><s>local paths and usernames</s></span>
+        <span class="chip"><s>customer names</s></span>
+        <span class="chip">.troveignore</span>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="term rv">
+        <div class="bar"><i></i><i></i><i></i><span>zsh</span></div>
+<pre><span class="p">$</span> trove ship --out handoff/
+<span class="g">wrote</span> overview.md architecture.md setup.md
+      conventions.md decisions.md gotchas.md
+<span class="y">redacted 7</span>  2 tokens, 3 emails,
+            1 internal host, 1 local path
+<span class="c">report: handoff/REDACTIONS.md</span></pre>
+      </div>
+      <div class="card rv">
+        <div class="k">how it strips</div>
+        <ul>
+          <li><b>Deterministic detectors first</b>, so the common leaks never depend on a model.</li>
+          <li><b>Optional agent review</b> with Claude Code, Codex or pi to catch what patterns miss.</li>
+          <li><b>A redaction report</b> lists every removal and why.</li>
+          <li><b>Your format</b>: a Markdown folder, a single file or a static site.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────── 05 proof ───────── -->
+  <section class="sec" id="proof">
+    <div class="rv">
+      <div class="num"><b>05</b> Proof</div>
+      <h2>Higher information density. <em>Not larger prompts.</em></h2>
+      <p class="intro">
+        Trove answers with architecture first and drills into modules and symbols only when it needs to.
+        Here is the engine run against its own repository.
+      </p>
+    </div>
+
+    <div class="bench rv">
+      <div class="metric">
+        <div class="v">33<small>x</small></div>
+        <div class="u">fewer tokens</div>
+        <p>669 tokens of layered context versus about 21,900 for the raw source of <code>crates/</code> and <code>plugins/</code>.</p>
+      </div>
+      <div class="metric">
+        <div class="v">4<small>ms</small></div>
+        <div class="u">per query</div>
+        <p>Progressive retrieval over the index, from architecture down to symbols, with a token budget.</p>
+      </div>
+      <div class="metric">
+        <div class="v">0.13<small>s</small></div>
+        <div class="u">to index</div>
+        <p>50 files, 203 symbols, 50 modules and 2 subsystems. Re-indexing only rebuilds what changed.</p>
+      </div>
+    </div>
+
+    <div class="bars rv" role="img" aria-label="Context tokens for one question: raw source about 21,900 tokens, trove query 669 tokens.">
+      <h3>Context needed for one question</h3>
+      <div class="bar-row">
+        <span class="lbl">raw source, crates + plugins</span>
+        <span class="track"><span class="fill" style="--w:100%; display:block"></span></span>
+        <span class="val">~21,900</span>
+      </div>
+      <div class="bar-row us">
+        <span class="lbl">trove query</span>
+        <span class="track"><span class="fill" style="--w:3.05%; display:block; min-width:6px"></span></span>
+        <span class="val">669</span>
+      </div>
+    </div>
+    <p class="method rv">
+      Method: Trove v0.2.0 release build on Linux, run on this repository. Query: "how does progressive retrieval
+      respect the context budget". Tokens are estimated at 4 characters per token, the same heuristic the engine uses.
+      Reproduce with the commands in <a href="#install">01 Install</a>.
     </p>
+  </section>
+
+  <!-- ───────── 06 how it works ───────── -->
+  <section class="sec" id="how">
+    <div class="rv">
+      <div class="num"><b>06</b> How it works</div>
+      <h2>Two layers, one system. <em>Structure and memory.</em></h2>
+      <p class="intro">
+        The engine answers "what is in this codebase and where". The plugin answers "what did we decide and why".
+        Retrieval flows top-down and stops as soon as it has enough. See
+        <a href="https://github.com/anishfyi/trove/blob/main/VISION.md">VISION.md</a> for the full L0 to L6 design.
+      </p>
+    </div>
+    <div class="layers rv">
+      <div class="layer"><span class="id">L1</span><span class="t">Symbols</span><p>Functions, types, traits and tests in Rust, Python, JS/TS, Go and Bash.</p></div>
+      <div class="layer"><span class="id">L2</span><span class="t">Modules</span><p>Per-file summaries: exports, dependencies, assumptions, side effects.</p></div>
+      <div class="layer"><span class="id">L3</span><span class="t">Subsystems</span><p>Package-level clusters with their key files.</p></div>
+      <div class="layer"><span class="id">L4</span><span class="t">Architecture</span><p>Repo-wide design map and dependency graph.</p></div>
+      <div class="layer"><span class="id">L5</span><span class="t">History</span><p>Decisions and gotchas imported from your troves.</p></div>
+      <div class="layer"><span class="id">hook</span><span class="t">SessionStart</span><p>Loads your trove index into context so every session starts ahead.</p></div>
+      <div class="layer"><span class="id">hook</span><span class="t">SessionEnd</span><p>Prompts a reflection and a re-index when the repo changed.</p></div>
+    </div>
+  </section>
+
+  <!-- ───────── 07 app ───────── -->
+  <section class="sec" id="app">
+    <div class="rv">
+      <div class="num"><b>07</b> The app <span class="badge soon">coming soon</span></div>
+      <h2>Work memory on your desktop. <em>Every trove, one place.</em></h2>
+    </div>
+    <div class="app">
+      <div class="rv">
+        <p class="intro" style="margin-top:0">
+          A macOS app, with a Linux build, that keeps your work memory across every project and agent: your personal
+          trove and every project trove on the machine, browsable and searchable together. Local by default, with any
+          sync strictly opt-in.
+        </p>
+        <p class="intro">
+          It is in design now. Follow along or share what you would want from it on
+          <a href="https://github.com/anishfyi/trove/issues/24">issue #24</a>.
+        </p>
+      </div>
+      <div class="window rv" aria-hidden="true">
+        <div class="dots"><i></i><i></i><i></i></div>
+        <div class="row a"></div><div class="row b"></div><div class="row c"></div><div class="row d"></div><div class="row c"></div>
+        <div class="soon">Coming soon.</div>
+      </div>
+    </div>
   </section>
 
   <!-- ───────── footer ───────── -->
-  <footer class="sec" x-data="{seen:false}" x-intersect.once="seen=true" :class="{seen}" style="border-bottom:none">
-    <div class="foot-logo"><img src="logo.svg" alt="" /><span class="foot-word">Trove</span></div>
-    <p class="foot-tag">Beyond context windows.</p>
-    <p class="stamp">Built by <b>anishfyi</b>.</p>
-    <p class="madeby">
-      <a href="VISION.md">Vision</a> ·
-      <a href="PRD.md">PRD</a> ·
-      <a href="ENGINEERING.md">Engineering</a> ·
-      <a href="https://github.com/anishfyi/trove/releases/tag/v0.2.0">v0.2.0 release</a>
-    </p>
-    <div class="foot-links">
-      <a class="pill" href="https://github.com/anishfyi/trove"><span class="ic">&#9733;</span> github.com/anishfyi/trove</a>
-      <a class="pill" href="VISION.md"><span class="ic">&#167;</span> Vision</a>
-      <a class="pill" href="https://github.com/anishfyi/trove/releases/tag/v0.2.0"><span class="ic">&#9733;</span> v0.2.0</a>
+  <footer>
+    <div class="foot">
+      <div>
+        <div class="mark"><img src="logo.svg" alt="" width="36" height="36" /> trove</div>
+        <p class="tag">Beyond the context window.</p>
+        <p class="by">Built by <a href="https://github.com/anishfyi">anishfyi</a>. Open source, MIT licensed.</p>
+      </div>
+      <div class="foot-links">
+        <a class="btn" href="https://github.com/anishfyi/trove">GitHub</a>
+        <a class="btn" href="https://github.com/anishfyi/trove/releases">Releases</a>
+        <a class="btn" href="https://github.com/anishfyi/trove/blob/main/VISION.md">Vision</a>
+        <a class="btn" href="https://github.com/anishfyi/trove/blob/main/ENGINEERING.md">Engineering</a>
+        <a class="btn" href="https://github.com/anishfyi/trove/issues/19">Roadmap</a>
+      </div>
     </div>
   </footer>
 
 </div>
+</main>
 
-<script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script>
-  function trovesite(){
-    return {
-      // ── install ──
-      tab: 'plugin',
-      copied: null,
-      engineCmd: "git clone https://github.com/anishfyi/trove && cd trove\ncargo build -p trove-cli\ncargo run -p trove-cli -- index\ncargo run -p trove-cli -- query \"modify vendor onboarding\"",
-      plugins: "/plugin marketplace add https://github.com/anishfyi/trove.git\n/plugin install trove@velofy-trove",
-      manual: "git clone https://github.com/anishfyi/trove /tmp/trove\ncp -r /tmp/trove/plugins/trove/skills/* ~/.claude/skills/",
-      copy(id, text){
-        navigator.clipboard.writeText(text).then(() => {
-          this.copied = id;
-          setTimeout(() => { if(this.copied === id) this.copied = null; }, 1400);
-        });
-      },
+(function(){
+  var d = document.documentElement;
+  function store(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
 
-      // ── logo mark (sprout in a terracotta pot) ──
-      logoMark: `<svg viewBox="0 0 24 24" width="100%" height="100%">
-        <path d="M6 14h12l-1.6 7H7.6z" fill="#c0613a"/>
-        <rect x="5" y="12.4" width="14" height="2.7" rx="1" fill="#d2724a"/>
-        <path d="M12 13V6" stroke="#2f6f6a" stroke-width="1.7" stroke-linecap="round"/>
-        <path d="M12 9C9 9 7.4 7.1 7.4 7.1 10 6.6 12 8 12 9Z" fill="#5b9c6a"/>
-        <path d="M12 8c3 0 4.6-1.9 4.6-1.9C14 5.5 12 7 12 8Z" fill="#7cb98a"/>
-        <circle cx="12" cy="5" r="1.8" fill="#d83a22"/>
-      </svg>`,
-
-      // ── memory garden ──
-      seeds: [
-        { label: "Use pgx + sqlc, not a heavy ORM", type: "decision" },
-        { label: "Staging DB mirrors prod nightly",  type: "gotcha" },
-        { label: "Tabs, never spaces, in this repo", type: "preference" },
-        { label: "Queue-depth board on Grafana",     type: "reference" },
-        { label: "Deploy as a single static binary", type: "decision" },
-        { label: "order_id is the Shopify number",   type: "gotcha" },
-        { label: "Run migrations only with approval",type: "preference" },
-        { label: "Auth flow lives in docs/auth.md",  type: "reference" },
-        { label: "Prefer composition over inheritance", type: "preference" },
-        { label: "Webhook retries are not idempotent",  type: "gotcha" },
-        { label: "Feature flags gate the new checkout", type: "decision" },
-        { label: "Cache key scheme in cache/keys.md",   type: "reference" },
-      ],
-      memories: [],
-
-      init(){ this.remember(); this.remember(); },
-
-      remember(){
-        const s = this.seeds[this.memories.length % this.seeds.length];
-        this.memories.push(s);
-      },
-      reset(){ this.memories = []; },
-
-      get last(){ return this.memories.length ? this.memories[this.memories.length - 1] : null; },
-
-      leafColor(type){
-        return ({ decision:'var(--teal)', gotcha:'var(--vermilion)', preference:'var(--gold)',
-                  reference:'var(--blue)', project:'var(--leaf)', snippet:'var(--ink-soft)' })[type] || 'var(--leaf)';
-      },
-      // colour of the k-th leaf, by the type of the k-th memory
-      leafColorAt(k){ return this.memories[k] ? this.leafColor(this.memories[k].type) : 'var(--leaf)'; },
-      // the stem grows just past the topmost leaf (no flower, just a sprig)
-      get stemPath(){
-        const v = Math.min(this.memories.length, 8);
-        const topLeafY = v >= 1 ? 150 - (v - 1) * 11 : 150;
-        const tipY = v >= 1 ? topLeafY - 13 : 152;
-        return `M100,158 L100,${tipY}`;
-      },
-    };
+  // theme toggle
+  var themeBtn = document.getElementById('theme');
+  var themeMeta = document.querySelector('meta[name="theme-color"]');
+  function syncTheme(){
+    var light = d.getAttribute('data-theme') === 'light';
+    themeBtn.setAttribute('aria-label', light ? 'Switch to dark theme' : 'Switch to light theme');
+    themeMeta.setAttribute('content', light ? '#f5f0e6' : '#0c0e12');
   }
+  themeBtn.addEventListener('click', function(){
+    var next = d.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    d.setAttribute('data-theme', next); store('trove-theme', next); syncTheme();
+  });
+  syncTheme();
+
+  // motion toggle
+  var motionBtn = document.getElementById('motion');
+  function syncMotion(){
+    var paused = d.getAttribute('data-motion') === 'paused';
+    motionBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+    motionBtn.setAttribute('aria-label', paused ? 'Play background motion' : 'Pause background motion');
+    motionBtn.title = paused ? 'Play motion' : 'Pause motion';
+  }
+  motionBtn.addEventListener('click', function(){
+    var next = d.getAttribute('data-motion') === 'paused' ? 'on' : 'paused';
+    d.setAttribute('data-motion', next); store('trove-motion', next); syncMotion();
+  });
+  syncMotion();
+
+  // copy buttons
+  document.querySelectorAll('[data-copy]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var text = b.getAttribute('data-copy');
+      var done = function(){
+        b.textContent = 'Copied'; b.classList.add('done');
+        setTimeout(function(){ b.textContent = 'Copy'; b.classList.remove('done'); }, 1400);
+      };
+      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, function(){});
+      else {
+        var t = document.createElement('textarea'); t.value = text; t.setAttribute('readonly', '');
+        t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select();
+        try { document.execCommand('copy'); done(); } catch(e){}
+        document.body.removeChild(t);
+      }
+    });
+  });
+
+  // animated code background: real snippets from the repo, scrolled in three reels
+  var src = [
+    [
+      '$ trove index',
+      'Indexed 50 files, 203 symbols, 50 modules',
+      '$ trove status',
+      'Counts: 203 symbols, 50 modules, 2 subsystems',
+      '',
+      'pub struct ContextBudget {',
+      '    pub total_tokens: usize,',
+      '    pub working_memory: usize,',
+      '    pub architecture: usize,',
+      '    pub active_files: usize,',
+      '    pub dependency_expansion: usize,',
+      '    pub code: usize,',
+      '}',
+      '',
+      'pub fn estimate_tokens(text: &str) -> usize {',
+      '    text.len() / 4 + 1',
+      '}',
+      '',
+      '## L4 Architecture Memory',
+      'architecture -> subsystem -> module -> symbol',
+      '## L3 Subsystem Memory  crates',
+      '## L2 Module Memory  budget.rs',
+      'Estimated tokens: 669 / 200000',
+      ''
+    ],
+    [
+      '# Trove Index',
+      '- [Use pgx + sqlc, not a heavy ORM](entries/use-pgx-not-orm.md)',
+      '- [Local service ports](entries/service-ports.json)',
+      '- [Staging DB mirrors prod nightly](entries/staging-db-mirror.md)',
+      '',
+      '---',
+      'title: Never run migrations without approval',
+      'type: convention',
+      'tags: [db, release]',
+      '---',
+      '',
+      '/trove:remember webhook retries are not idempotent',
+      'saved memory/webhook-retries.md',
+      '/trove:recall how do we deploy',
+      '-> memory/deploy-single-binary.md',
+      '',
+      '.claude/skills/app-conventions/SKILL.md',
+      '.claude/skills/app-memory/SKILL.md',
+      '.claude/skills/app-context/SKILL.md',
+      ''
+    ],
+    [
+      '$ trove ask "who owns the retry queue?"',
+      '[1] memory/queue-ownership.md',
+      '[2] crates/worker/src/retry.rs',
+      '',
+      '$ trove tools search pdf',
+      'qpdf      transform PDF files',
+      'pdftotext convert PDF to text',
+      '',
+      '$ trove ship --out handoff/',
+      'redacted 7: 2 tokens, 3 emails',
+      '  1 internal host, 1 local path',
+      'report: handoff/REDACTIONS.md',
+      '',
+      'impl RetrievalPipeline {',
+      '    pub fn query(&self, q: &str)',
+      '        -> AssembledContext {',
+      '        // architecture first,',
+      '        // stop when enough',
+      '    }',
+      '}',
+      ''
+    ]
+  ];
+  var reels = document.querySelectorAll('[data-reel]');
+  reels.forEach(function(el){
+    var lines = src[+el.getAttribute('data-reel')];
+    var block = lines.concat(lines, lines);
+    var frag = document.createDocumentFragment();
+    block.concat(block).forEach(function(l){
+      var s = document.createElement('span'); s.textContent = l || ' '; frag.appendChild(s);
+    });
+    el.appendChild(frag);
+  });
+  // highlight a line now and then, like retrieval picking context
+  var spans = document.querySelectorAll('.codebg .reel span');
+  var lit = [];
+  setInterval(function(){
+    if (d.getAttribute('data-motion') === 'paused' || document.hidden) return;
+    if (lit.length > 3) lit.shift().classList.remove('hit');
+    var s = spans[Math.floor(Math.random() * spans.length)];
+    if (s && s.textContent.trim()) { s.classList.add('hit'); lit.push(s); }
+  }, 900);
+
+  // reveal sections and mark the active nav link
+  var secs = document.querySelectorAll('section.sec');
+  var links = {};
+  document.querySelectorAll('[data-nav]').forEach(function(a){ links[a.getAttribute('href').slice(1)] = a; });
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { rootMargin: '0px 0px -12% 0px' });
+    secs.forEach(function(s){ io.observe(s); });
+    var nav = new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        var a = links[e.target.id];
+        if (!a) return;
+        if (e.isIntersecting) { Object.keys(links).forEach(function(k){ links[k].classList.remove('on'); }); a.classList.add('on'); }
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    secs.forEach(function(s){ nav.observe(s); });
+  } else {
+    secs.forEach(function(s){ s.classList.add('in'); });
+  }
+})();
 </script>
 </body>
 </html>
