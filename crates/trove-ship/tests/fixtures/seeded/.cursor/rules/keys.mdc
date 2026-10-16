@@ -1,0 +1,8 @@
+---
+description: Key handling
+alwaysApply: true
+---
+
+# Keys
+
+Do not paste provider keys into code. Bad example: ANTHROPIC_API_KEY=@@ANTHROPIC@@

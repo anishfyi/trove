@@ -1,0 +1,23 @@
+[package]
+name = "trove-ship"
+description = "Developer handoff docs from a project and its trove, with private info redacted"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "trove-ship"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+chrono.workspace = true
+clap.workspace = true
+ignore.workspace = true
+regex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+trove-core = { path = "../trove-core" }
+trove-index = { path = "../trove-index" }

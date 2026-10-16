@@ -5,6 +5,7 @@ members = [
     "crates/trove-index",
     "crates/trove-retrieve",
     "crates/trove-cli",
+    "crates/trove-ship",
 ]
 
 [workspace.package]
