@@ -40,8 +40,7 @@ pub struct TroveStore {
 impl TroveStore {
     pub fn open(repo_root: impl AsRef<Path>) -> Result<Self> {
         let root = repo_root.as_ref().join(TROVE_DIR);
-        fs::create_dir_all(&root)
-            .with_context(|| format!("create {}", root.display()))?;
+        fs::create_dir_all(&root).with_context(|| format!("create {}", root.display()))?;
         Ok(Self { root })
     }
 

@@ -88,10 +88,7 @@ impl DependencyGraph {
 
     pub fn expand(&self, seeds: &[String], depth: usize) -> Vec<String> {
         let mut visited = HashSet::new();
-        let mut queue: VecDeque<(String, usize)> = seeds
-            .iter()
-            .map(|s| (s.clone(), 0))
-            .collect();
+        let mut queue: VecDeque<(String, usize)> = seeds.iter().map(|s| (s.clone(), 0)).collect();
 
         while let Some((id, d)) = queue.pop_front() {
             if !visited.insert(id.clone()) {

@@ -21,8 +21,8 @@ Sources, ranked together with BM25 plus title and coverage boosts:
 
 | Kind | Where it comes from |
 |------|---------------------|
-| `personal` | `~/.claude/trove/entries/*` |
-| `project` | `./.claude/trove/entries/*` |
+| `personal` | `~/.claude/trove/entries/*` (flat) |
+| `project` | `./.claude/trove/entries/*` plus sectioned `{conventions,memory,context}/entries/*` |
 | `doc` | top-level `*.md` and `docs/`, one document per heading |
 | `symbol`, `module`, `subsystem`, `arch` | the engine index in `.trove/` (run `trove index`) |
 | `tool` | the installed tool catalog (`--no-tools` leaves it out) |
@@ -48,6 +48,26 @@ Retrieval is fully offline. A written answer, citing sources as `[n]`, is opt-in
 
 `TROVE_PROVIDER` and `TROVE_MODEL` set defaults. HTTP goes through the system `curl`;
 API keys are passed to it on stdin, never on the command line.
+
+## Remember
+
+```bash
+echo "Bulk inserts must wrap in one transaction." \
+  | trove remember "WAL gotcha: bulk inserts" --type gotcha --tags db,sqlite
+trove --json remember "Use pgx" --type convention --body "All Postgres code goes through pgx."
+```
+
+Writes one entry per fact into the project trove (or the flat personal one),
+with the title words as a positional argument, the body on `--body` or piped
+stdin, and a required `--type` (convention, decision, gotcha, preference,
+reference, project, snippet, context) that routes to a section:
+convention/preference -> `conventions`, context -> `context`, everything else
+-> `memory`; `--section` overrides. Each call writes
+`<section>/entries/<slug>.md` (front matter: title, slug, type, created,
+tags) and inserts the newest-first line into the section's `INDEX.md`.
+Entries that look like secrets are refused before anything is written, and an
+existing slug is refused unless `--update` replaces it (keeping the original
+`created` date).
 
 ## Tools
 
