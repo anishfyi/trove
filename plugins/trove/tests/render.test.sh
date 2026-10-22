@@ -14,7 +14,8 @@ repo="$(cd "$plugin/../.." && pwd)"
 trove="$plugin/scripts/trove.sh"
 loader="$plugin/scripts/load-trove.sh"
 
-work="$(mktemp -d)"
+# Resolve symlinks (macOS /var is /private/var) so paths match what git reports.
+work="$(cd "$(mktemp -d)" && pwd -P)"
 trap 'rm -rf "$work"' EXIT
 export HOME="$work/home"
 mkdir -p "$HOME"
