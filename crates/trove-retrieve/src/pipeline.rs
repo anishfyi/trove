@@ -290,40 +290,30 @@ pub fn import_historical(store: &TroveStore, trove_dir: &std::path::Path) -> any
         return Ok(0);
     }
     let index = std::fs::read_to_string(index_path)?;
-    let entries_dir = trove_dir.join("entries");
     let mut imported = 0usize;
     let mut seen = HashSet::new();
 
-    if entries_dir.exists() {
-        for entry in std::fs::read_dir(entries_dir)? {
-            let entry = entry?;
-            let path = entry.path();
-            let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("");
-            if ext != "md" && ext != "json" {
-                continue;
-            }
-            let content = std::fs::read_to_string(&path)?;
-            let slug = path
-                .file_stem()
-                .and_then(|s| s.to_str())
-                .unwrap_or("entry")
-                .to_string();
-            if !seen.insert(slug.clone()) {
-                continue;
-            }
-            let hash = trove_core::store::content_hash(content.as_bytes());
-            let mut obj =
-                MemoryObject::new(format!("historical:{slug}"), MemoryKind::Historical, hash);
-            obj.path = Some(path.to_string_lossy().into());
-            obj.text = trove_core::compression::CompressedText::from_raw(content);
-            obj.text.compress_heuristic();
-            obj.confidence = Some(trove_core::memory::Confidence::high(
-                "imported from Claude trove entries",
-                vec!["import".into(), slug],
-            ));
-            store.write_objects(MemoryKind::Historical, std::slice::from_ref(&obj))?;
-            imported += 1;
+    for path in trove_core::layout::entry_files(trove_dir) {
+        let content = std::fs::read_to_string(&path)?;
+        let slug = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("entry")
+            .to_string();
+        if !seen.insert(slug.clone()) {
+            continue;
         }
+        let hash = trove_core::store::content_hash(content.as_bytes());
+        let mut obj = MemoryObject::new(format!("historical:{slug}"), MemoryKind::Historical, hash);
+        obj.path = Some(path.to_string_lossy().into());
+        obj.text = trove_core::compression::CompressedText::from_raw(content);
+        obj.text.compress_heuristic();
+        obj.confidence = Some(trove_core::memory::Confidence::high(
+            "imported from Claude trove entries",
+            vec!["import".into(), slug],
+        ));
+        store.write_objects(MemoryKind::Historical, std::slice::from_ref(&obj))?;
+        imported += 1;
     }
 
     // Also index the INDEX.md itself as L6 repository memory
@@ -334,4 +324,37 @@ pub fn import_historical(store: &TroveStore, trove_dir: &std::path::Path) -> any
     store.write_objects(MemoryKind::Repository, std::slice::from_ref(&repo_obj))?;
 
     Ok(imported)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn import_historical_reads_sectioned_entries() {
+        let repo =
+            std::env::temp_dir().join(format!("trove-import-sectioned-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&repo);
+        let trove = repo.join(".claude/trove");
+        std::fs::create_dir_all(trove.join("memory/entries")).unwrap();
+        std::fs::write(trove.join("INDEX.md"), "# Project trove\n").unwrap();
+        std::fs::write(
+            trove.join("memory/entries/wal-gotcha.md"),
+            "---\ntitle: WAL gotcha\n---\nBulk inserts need one transaction.\n",
+        )
+        .unwrap();
+        let store = TroveStore::open(&repo).unwrap();
+        let imported = import_historical(&store, &trove).unwrap();
+        assert_eq!(imported, 1);
+        let objects = store.read_objects(MemoryKind::Historical).unwrap();
+        assert!(objects.iter().any(|o| o.id == "historical:wal-gotcha"
+            && o.path.as_deref()
+                == Some(
+                    trove
+                        .join("memory/entries/wal-gotcha.md")
+                        .to_string_lossy()
+                        .as_ref()
+                )));
+        let _ = std::fs::remove_dir_all(&repo);
+    }
 }

@@ -12,27 +12,14 @@ const MAX_DOC_BYTES: u64 = 256 * 1024;
 const MAX_DOC_DEPTH: usize = 3;
 
 /// Entries of a Claude trove (`~/.claude/trove` or `./.claude/trove`):
-/// `entries/*.md` and `entries/*.json`, one fact per file.
+/// flat `entries/*.md|json` plus sectioned `{conventions,memory,context}/entries`,
+/// one fact per file.
 pub fn trove_entries(
     dir: &Path,
     kind: SourceKind,
     display_root: &dyn Fn(&Path) -> String,
 ) -> Vec<Doc> {
-    let Ok(rd) = std::fs::read_dir(dir.join("entries")) else {
-        return Vec::new();
-    };
-    let mut paths: Vec<PathBuf> = rd
-        .flatten()
-        .map(|e| e.path())
-        .filter(|p| {
-            matches!(
-                p.extension().and_then(|e| e.to_str()),
-                Some("md") | Some("json")
-            )
-        })
-        .collect();
-    paths.sort();
-    paths
+    trove_core::layout::entry_files(dir)
         .into_iter()
         .filter_map(|path| {
             let text = read_small(&path)?;
@@ -253,6 +240,26 @@ fn read_small(path: &Path) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn loads_sectioned_trove_entries() {
+        let dir = std::env::temp_dir().join(format!("trove-ask-sectioned-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("memory/entries")).unwrap();
+        std::fs::write(
+            dir.join("memory/entries/wal-gotcha.md"),
+            "---\ntitle: WAL gotcha\n---\nBulk inserts need one transaction.\n",
+        )
+        .unwrap();
+        std::fs::write(dir.join("memory/entries/scratch.txt"), "skip").unwrap();
+        let docs = trove_entries(&dir, SourceKind::Project, &|p| {
+            p.strip_prefix(&dir).unwrap().to_string_lossy().into_owned()
+        });
+        assert_eq!(docs.len(), 1);
+        assert_eq!(docs[0].title, "WAL gotcha");
+        assert_eq!(docs[0].path, "memory/entries/wal-gotcha.md");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 
     #[test]
     fn titles_from_frontmatter_json_and_heading() {
