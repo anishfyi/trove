@@ -801,19 +801,11 @@ fn build_system(repo: &Path, file_name: &str, content: &str) -> Option<BuildSyst
     }
 }
 
-/// Read entries from the project trove at `.claude/trove/entries/`. The user
-/// trove in `~/.claude/trove` is personal and never shipped.
+/// Read entries from the project trove at `.claude/trove`: flat `entries/`
+/// plus sectioned `{conventions,memory,context}/entries/`. The user trove in
+/// `~/.claude/trove` is personal and never shipped.
 fn read_project_trove(repo: &Path, ignore: &TroveIgnore) -> Result<Vec<TroveEntry>> {
-    let dir = repo.join(".claude/trove/entries");
-    if !dir.is_dir() {
-        return Ok(Vec::new());
-    }
-    let mut paths: Vec<PathBuf> = fs::read_dir(&dir)?
-        .flatten()
-        .map(|e| e.path())
-        .filter(|p| matches!(p.extension().and_then(|e| e.to_str()), Some("md" | "json")))
-        .collect();
-    paths.sort();
+    let paths = trove_core::layout::entry_files(&repo.join(".claude/trove"));
     let mut out = Vec::new();
     for path in paths {
         let rel = path
@@ -1065,6 +1057,36 @@ mod tests {
         let s = split_sections("## A\n```\n# not a heading\n```\n## B\nb\n");
         assert_eq!(s.len(), 2);
         assert!(s[0].body.contains("# not a heading"));
+    }
+
+    #[test]
+    fn project_trove_includes_sectioned_entries() {
+        let repo =
+            std::env::temp_dir().join(format!("trove-ship-sectioned-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&repo);
+        std::fs::create_dir_all(repo.join(".claude/trove/memory/entries")).unwrap();
+        std::fs::create_dir_all(repo.join(".claude/trove/entries")).unwrap();
+        std::fs::write(
+            repo.join(".claude/trove/memory/entries/wal-gotcha.md"),
+            "---\ntitle: Use WAL\ntype: decision\ncreated: 2026-01-02\ntags: [db]\n---\n\nBody here.\n",
+        )
+        .unwrap();
+        std::fs::write(
+            repo.join(".claude/trove/entries/flat.md"),
+            "---\ntitle: Flat entry\ncreated: 2026-01-03\n---\n\nFlat body.\n",
+        )
+        .unwrap();
+        let entries = read_project_trove(&repo, &TroveIgnore::default()).unwrap();
+        let files: Vec<&str> = entries.iter().map(|e| e.file.as_str()).collect();
+        assert!(files.contains(&".claude/trove/entries/flat.md"));
+        assert!(files.contains(&".claude/trove/memory/entries/wal-gotcha.md"));
+        let wal = entries
+            .iter()
+            .find(|e| e.file.ends_with("wal-gotcha.md"))
+            .unwrap();
+        assert_eq!(wal.title, "Use WAL");
+        assert_eq!(wal.kind, "decision");
+        let _ = std::fs::remove_dir_all(&repo);
     }
 
     #[test]
