@@ -1,6 +1,7 @@
 mod ask;
 mod llm;
 mod paths;
+mod remember;
 mod repl;
 mod tools;
 
@@ -72,6 +73,27 @@ enum Commands {
         /// Leave the tool catalog out
         #[arg(long)]
         no_tools: bool,
+    },
+    /// Capture a durable learning into the trove (one entry file plus an index line)
+    Remember {
+        /// Entry title
+        #[arg(required = true, num_args = 1..)]
+        title: Vec<String>,
+        /// Entry type: convention, decision, gotcha, preference, reference, project, snippet, context
+        #[arg(long = "type", value_name = "TYPE")]
+        entry_type: String,
+        /// Entry body (read from stdin when piped and not given)
+        #[arg(long, value_name = "TEXT")]
+        body: Option<String>,
+        /// Comma-separated tags
+        #[arg(long, value_name = "A,B")]
+        tags: Option<String>,
+        /// Target section override: conventions | memory | context
+        #[arg(long, value_name = "SECTION")]
+        section: Option<String>,
+        /// Replace an existing entry with the same slug
+        #[arg(long)]
+        update: bool,
     },
     /// Installed CLIs: `tools`, `tools search <terms>`, `tools <name>`, `tools refresh`
     Tools {
@@ -155,6 +177,68 @@ fn main() -> Result<()> {
             let knowledge = Knowledge::load(&ask_repo(), !no_tools);
             let result = ask::ask(&knowledge, &question.join(" "), &ask_opts(limit));
             ask::print(&result, cli.json)?;
+        }
+        Commands::Remember {
+            title,
+            entry_type,
+            body,
+            tags,
+            section,
+            update,
+        } => {
+            use std::io::IsTerminal;
+            let repo = ask_repo();
+            let home = home_dir();
+            let body = match body {
+                Some(b) => b,
+                None if !std::io::stdin().is_terminal() => {
+                    let mut buf = String::new();
+                    std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)?;
+                    buf
+                }
+                None => anyhow::bail!("provide --body or pipe the entry body on stdin"),
+            };
+            let tags = tags
+                .map(|t| {
+                    t.split(',')
+                        .map(str::trim)
+                        .filter(|t| !t.is_empty())
+                        .map(str::to_string)
+                        .collect()
+                })
+                .unwrap_or_default();
+            let opts = remember::RememberOptions {
+                title: title.join(" "),
+                body,
+                entry_type,
+                tags,
+                section,
+                update,
+            };
+            let r = remember::remember(&repo, &home, &opts)?;
+            if cli.json {
+                println!(
+                    "{}",
+                    json!({
+                        "slug": r.slug,
+                        "path": r.path,
+                        "section": r.section,
+                        "updated": r.updated,
+                    })
+                );
+                return Ok(());
+            }
+            let where_ = if r.section.is_empty() {
+                "user trove".to_string()
+            } else {
+                r.section.clone()
+            };
+            println!(
+                "Remembered '{}' -> {} ({})",
+                opts.title,
+                crate::paths::display_path(&r.path, &repo, &home),
+                where_
+            );
         }
         Commands::Tools {
             args,
