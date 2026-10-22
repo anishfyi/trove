@@ -1,5 +1,7 @@
 # Trove - Product Requirements Document
 
+> **Status: historical.** This document captures the v0.1 design as shipped; it is kept for reference and no longer updated. For current behavior see [README.md](README.md), [CONTRIBUTING.md](CONTRIBUTING.md) and the tests.
+
 **Author:** anishfyi
 **Status:** v0.1 (shipped)
 **Last updated:** 2026-06-13

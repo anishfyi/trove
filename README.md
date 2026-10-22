@@ -77,8 +77,9 @@ cargo run -p trove-cli -- status
 cargo run -p trove-cli -- query "modify vendor onboarding"
 ```
 
-Other commands: `import-historical`, `record`, `patch`. Run `cargo run -p trove-cli -- --help` for
-the full list.
+Other commands: `remember` (write trove entries from the CLI), `tools`, `status`,
+`query`, `import-historical`, `record`, `patch` — see the
+[CLI reference](#cli-reference) below for every subcommand and flag.
 
 ### What gets indexed
 
@@ -232,6 +233,35 @@ Entry types: `convention`, `decision`, `gotcha`, `preference`, `reference`, `pro
 
 ---
 
+## CLI reference
+
+Verified against `trove --help`; run any subcommand with `--help` for details.
+
+| Command | What it does |
+|---|---|
+| `ask <question>` | Answer from troves, repo docs, code index and installed tools; prints the context budget and citations |
+| `remember <title words...> --type <TYPE>` | Write one trove entry plus its index line; body via `--body` or stdin |
+| `tools ls` / `tools show <name>` / `tools search <term>` | Browse the installed tool catalog |
+| `index` | Index the repository: symbols, modules, subsystems, architecture |
+| `status` | Show index freshness and object counts |
+| `query <text>` | Low-level retrieval: ranked sources for a text |
+| `import-historical` | Import legacy flat `entries/` + `INDEX.md` as historical memories |
+| `record` | Record a memory object from a JSON file or stdin |
+| `patch` | Record a memory patch (before/after) for the change log |
+
+Global flags: `--repo <dir>` (default: current dir; `ask` searches upward for
+`.trove` or `.git`), `--json` (machine-readable output), `--budget <tokens>`
+(context budget for assembled context), `--provider <none\|anthropic\|ollama\|cmd>`
+(answer step for `ask`; `none` keeps retrieval offline) and `--model <name>`
+(model for the provider; anthropic default `claude-opus-5-5`).
+
+`remember` writes `<section>/entries/<slug>.md` with front matter (`title`,
+`slug`, `type`, `created`, `tags`), routes by type (`convention`/`preference` ->
+conventions, `context` -> context, everything else -> memory, overridable with
+`--section`), inserts the newest-first `INDEX.md` line, refuses obvious secrets,
+and refuses an existing slug unless `--update` replaces it. The `ship` step is a
+separate binary: `cargo run -p trove-ship -- --repo .`.
+
 ## Repository layout
 
 ```
@@ -253,17 +283,19 @@ trove/
 ├── .claude-plugin/             # marketplace.json (velofy-trove)
 ├── index.html                  # landing page
 ├── logo.svg                    # animated icon, also the favicon
-├── PRD.md
-└── ENGINEERING.md
+├── CONTRIBUTING.md             # build, test and local-plugin quickstart
+├── PRD.md                      # historical (v0.1)
+└── ENGINEERING.md              # historical (v0.1)
 ```
 
 Entries marked with a PR number landed in that v0.3 PR.
 
 ## Docs
 
-- [Vision: Beyond Context Windows](VISION.md)
-- [Product Requirements (v0.1 plugin)](PRD.md)
-- [Engineering Design](ENGINEERING.md)
+- [Contributing](CONTRIBUTING.md) — build, test and local plugin quickstart
+- [Vision: Beyond Context Windows](VISION.md) (historical)
+- [Product Requirements (v0.1 plugin)](PRD.md) (historical)
+- [Engineering Design](ENGINEERING.md) (historical)
 
 ---
 

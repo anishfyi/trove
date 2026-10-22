@@ -111,12 +111,7 @@ impl Indexer {
 
             if let Some(existing) = existing_modules.get(&rel) {
                 if existing.hash == hash {
-                    all_symbols.extend(
-                        existing_symbols
-                            .iter()
-                            .filter(|s| s.path == rel)
-                            .cloned(),
-                    );
+                    all_symbols.extend(existing_symbols.iter().filter(|s| s.path == rel).cloned());
                     modules.push(existing.clone());
                     continue;
                 }
@@ -131,12 +126,21 @@ impl Indexer {
                 &rel,
                 &content,
                 &all_symbols,
-                file_imports.get(&rel).cloned().unwrap_or_default().as_slice(),
+                file_imports
+                    .get(&rel)
+                    .cloned()
+                    .unwrap_or_default()
+                    .as_slice(),
             ));
         }
 
         // Drop modules for deleted files
-        modules.retain(|m| m.path.as_ref().map(|p| seen_paths.contains_key(p)).unwrap_or(false));
+        modules.retain(|m| {
+            m.path
+                .as_ref()
+                .map(|p| seen_paths.contains_key(p))
+                .unwrap_or(false)
+        });
         all_symbols.retain(|s| seen_paths.contains_key(&s.path));
 
         if all_symbols.is_empty() && modules.is_empty() {
@@ -162,11 +166,15 @@ impl Indexer {
 
         let symbol_objects: Vec<MemoryObject> = all_symbols.iter().map(symbol_to_memory).collect();
 
-        self.store.write_objects(MemoryKind::Symbol, &symbol_objects)?;
-        self.store.write_objects(MemoryKind::Module, &modules)?;
-        self.store.write_objects(MemoryKind::Subsystem, &subsystems)?;
         self.store
-            .write_objects(MemoryKind::Architecture, std::slice::from_ref(&architecture))?;
+            .write_objects(MemoryKind::Symbol, &symbol_objects)?;
+        self.store.write_objects(MemoryKind::Module, &modules)?;
+        self.store
+            .write_objects(MemoryKind::Subsystem, &subsystems)?;
+        self.store.write_objects(
+            MemoryKind::Architecture,
+            std::slice::from_ref(&architecture),
+        )?;
         self.store.write_json("graph.json", &graph)?;
         self.store.write_json("symbols.json", &all_symbols)?;
 

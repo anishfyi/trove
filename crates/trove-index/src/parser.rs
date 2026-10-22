@@ -150,8 +150,12 @@ fn extract_name(text: &str, kind: SymbolKind) -> String {
             .last()
             .unwrap_or(&first)
             .to_string(),
-        SymbolKind::Struct | SymbolKind::Class | SymbolKind::Enum | SymbolKind::Trait
-        | SymbolKind::Interface | SymbolKind::Module => first
+        SymbolKind::Struct
+        | SymbolKind::Class
+        | SymbolKind::Enum
+        | SymbolKind::Trait
+        | SymbolKind::Interface
+        | SymbolKind::Module => first
             .split_whitespace()
             .last()
             .unwrap_or(&first)

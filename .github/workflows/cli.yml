@@ -20,9 +20,9 @@ jobs:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
       - name: Format
-        run: cargo fmt -p trove-tools -p trove-retrieve -p trove-cli --check
+        run: cargo fmt --all --check
       - name: Clippy
-        run: cargo clippy --no-deps -p trove-tools -p trove-retrieve -p trove-cli --all-targets -- -D warnings
+        run: cargo clippy --no-deps --workspace --all-targets -- -D warnings
       - name: Build
         run: cargo build --workspace --locked
       - name: Test
@@ -35,3 +35,15 @@ jobs:
           $trove ask --json "tool discovery" --budget 300 > /dev/null
           $trove tools search git
           $trove tools ls
+
+  render:
+    name: plugin render tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build engine (enables the script's engine end-to-end checks)
+        run: cargo build --workspace --locked
+      - name: render.test.sh
+        run: bash plugins/trove/tests/render.test.sh

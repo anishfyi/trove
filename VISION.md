@@ -1,6 +1,8 @@
 # Trove
 ## Beyond Context Windows
 
+> **Status: historical.** This document captures the original product vision; it is kept for reference and no longer updated. For current behavior see [README.md](README.md), [CONTRIBUTING.md](CONTRIBUTING.md) and the tests.
+
 ---
 
 ## Vision

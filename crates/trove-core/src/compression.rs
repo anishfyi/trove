@@ -62,13 +62,8 @@ impl CompressedText {
                 .as_deref()
                 .or(self.summary.as_deref())
                 .or(self.raw.as_deref()),
-            CompressionTier::Keywords => {
-                if self.keywords.is_empty() {
-                    None
-                } else {
-                    None // keywords returned via keywords()
-                }
-            }
+            // Keywords are not a text tier; they are returned via `keywords()`.
+            CompressionTier::Keywords => None,
             CompressionTier::Embedding => None,
         }
     }
@@ -131,9 +126,34 @@ fn extract_keywords(text: &str) -> Vec<String> {
 fn is_stopword(word: &str) -> bool {
     matches!(
         word.to_lowercase().as_str(),
-        "the" | "and" | "for" | "with" | "this" | "that" | "from" | "return" | "true" | "false"
-            | "null" | "none" | "some" | "let" | "mut" | "pub" | "use" | "fn" | "impl" | "struct"
-            | "enum" | "mod" | "const" | "async" | "await" | "self" | "super" | "crate"
+        "the"
+            | "and"
+            | "for"
+            | "with"
+            | "this"
+            | "that"
+            | "from"
+            | "return"
+            | "true"
+            | "false"
+            | "null"
+            | "none"
+            | "some"
+            | "let"
+            | "mut"
+            | "pub"
+            | "use"
+            | "fn"
+            | "impl"
+            | "struct"
+            | "enum"
+            | "mod"
+            | "const"
+            | "async"
+            | "await"
+            | "self"
+            | "super"
+            | "crate"
     )
 }
 
