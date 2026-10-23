@@ -262,6 +262,11 @@ fn env_nonempty(key: &str) -> Option<String> {
     std::env::var(key).ok().filter(|v| !v.is_empty())
 }
 
+/// Serializes tests that touch process environment variables the cmd
+/// provider reads (`TROVE_LLM_CMD`), across every test module in this crate.
+#[cfg(test)]
+pub(crate) static CMD_ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -276,6 +281,7 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn command_provider_pipes_prompt() {
+        let _env = CMD_ENV_LOCK.lock().unwrap();
         std::env::set_var("TROVE_LLM_CMD", "wc -c");
         let out = complete(Provider::Cmd, None, "sys", "user").unwrap();
         std::env::remove_var("TROVE_LLM_CMD");
