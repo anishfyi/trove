@@ -189,9 +189,12 @@ npm token	npm_[A-Za-z0-9]{36}"
   local v='[A-Za-z0-9_./+=-]' alts="" i
   alts="[0-9]$v{7,}"
   for i in 1 2 3 4 5 6; do alts="$alts|$v{$i}[0-9]$v{$((7 - i)),}"; done
-  alts="$alts|$v{7,}[0-9]$v*|$v{20,}"
+  alts="$alts|$v{7,}[0-9]$v*|$v{20,}|[^'\"]{7,}[0-9][^'\"]*['\"]|[^'\"]{20,}['\"]"
   local keys
-  keys="$(ci apikey)|$(ci api_key)|$(ci api-key)|$(ci secret)|$(ci token)|$(ci password)|$(ci passwd)|$(ci pwd)"
+  # Keep in parity with the Rust secret-assignment detector
+  # (crates/trove-redact/src/detectors.rs): passphrase and key families,
+  # spaced spellings, plural/long forms.
+  keys="$(ci apikey)|$(ci api_key)|$(ci api-key)|$(ci "api key")|$(ci secret)|$(ci token)|$(ci password)|$(ci passwd)|$(ci pwd)|$(ci passphrase)|$(ci pass_phrase)|$(ci pass-phrase)|$(ci "pass phrase")|$(ci credential)|$(ci credentials)|$(ci access_key)|$(ci "access key")|$(ci auth_key)|$(ci "auth key")|$(ci private_key)|$(ci "private key")|$(ci client_secret)|$(ci signing_key)|$(ci signing-key)|$(ci "signing key")|$(ci encryption_key)|$(ci encryption-key)|$(ci "encryption key")|$(ci master_key)|$(ci master-key)|$(ci "master key")|$(ci session_key)|$(ci session-key)|$(ci "session key")"
   ASSIGN_RE="([A-Za-z0-9_-]*($keys)[A-Za-z0-9_-]*)([[:space:]]*[=:][[:space:]]*['\"]?)($alts)"
 }
 

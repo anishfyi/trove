@@ -174,6 +174,30 @@ check "guard reports lines, not the secret itself" '! printf "%s" "$out" | grep 
 check "guard flags aws, github, slack, assignment and private key shapes" \
   'for k in "aws access key" "github token" "slack token" "secret assignment" "private key"; do printf "%s" "$out" | grep -q "$k" || exit 1; done'
 out="$(bash "$trove" guard "$work/prose.md" 2>&1)"; status=$?
+# widened assignment shapes: quoted multi-word passphrases, key families,
+# spaced spellings (fake credentials assembled at runtime)
+frag_q="Nf3Wq9"; frag_r="Zb7Xe2KmYt"
+cat > "$work/quoted.md" <<EOF
+password = "correct horse battery staple 42"
+passphrase: '$frag_q$frag_r'
+signing key = $frag_q$frag_r
+encryption_key: $frag_q$frag_r
+master-key = $frag_q$frag_r
+session_key = $frag_q$frag_r
+api key = $frag_q$frag_r
+EOF
+out="$(bash "$trove" guard "$work/quoted.md" 2>&1)"; status=$?
+check "guard flags quoted passphrases and key-family assignments" '[ "$status" = 1 ]'
+
+cat > "$work/clean2.md" <<'EOF'
+The password policy rotates monthly; api key guidance lives in the wiki.
+password = "short1"
+passphrase = get_passphrase()
+credentials = env.CREDS
+EOF
+out="$(bash "$trove" guard "$work/clean2.md" 2>&1)"; status=$?
+check "guard still passes prose, short quoted values and code references" '[ "$status" = 0 ] && [ -z "$out" ]'
+
 check "guard does not flag ordinary prose or placeholders" '[ "$status" = 0 ] && [ -z "$out" ]'
 cp "$work/secret.md" "$work/redact.md"
 bash "$trove" guard --redact "$work/redact.md" >/dev/null 2>&1

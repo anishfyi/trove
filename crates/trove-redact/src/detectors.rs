@@ -293,14 +293,17 @@ fn private_key() -> Detector {
 
 fn secret_assignment() -> Detector {
     let re = rx(
-        r#"(?i)\b([a-z0-9_.-]*?(?:password|passwd|pwd|secret|token|api[_-]?key|apikey|access[_-]?key|private[_-]?key|client[_-]?secret|auth[_-]?key|credential)s?[a-z0-9_.-]*)["']?[ \t]*(?::=|=>|:|=)[ \t]*["'`]?([^\s"'`,;)\]}]{8,})"#,
+        r#"(?i)\b([a-z0-9_.-]*?(?:password|passwd|pwd|pass[_\- ]?phrase|secret|token|credential|api[_\- ]?key|apikey|access[_\- ]?key|private[_\- ]?key|client[_\- ]?secret|auth[_\- ]?key|signing[_\- ]?key|encryption[_\- ]?key|master[_\- ]?key|session[_\- ]?key)s?[a-z0-9_.-]*)["']?[ \t]*(?::=|=>|:|=)[ \t]*(?:\"([^\"\n]{8,})\"|'([^'\n]{8,})'|["'`]?([^\s"'`,;)\]}]{8,}))"#,
     );
     let name = "secret-assignment";
     Detector {
         name,
         run: Box::new(move |text, out| {
             for caps in re.captures_iter(text) {
-                let (Some(key), Some(val)) = (caps.get(1), caps.get(2)) else {
+                let (Some(key), Some(val)) = (
+                    caps.get(1),
+                    caps.get(2).or_else(|| caps.get(3)).or_else(|| caps.get(4)),
+                ) else {
                     continue;
                 };
                 let key = key.as_str().to_ascii_lowercase();
@@ -1052,6 +1055,76 @@ mod tests {
 
     fn cat(parts: &[&str]) -> String {
         parts.concat()
+    }
+
+    #[test]
+    fn secret_assignment_quoted_multivord_passphrase() {
+        // The gap this slice closes: quoted multi-word passphrases were
+        // invisible because the value side rejected spaces.
+        let phrase = cat(&["correct ", "horse battery ", "staple 42"]);
+        assert_eq!(
+            run("secret-assignment", &format!("password = \"{phrase}\"")),
+            vec![phrase.clone()]
+        );
+        assert_eq!(
+            run("secret-assignment", &format!("passphrase: '{phrase}'")),
+            vec![phrase.clone()]
+        );
+        // Long, high-entropy passphrases must be high confidence so the
+        // fail-closed verification refuses them too.
+        assert_eq!(
+            run_conf("secret-assignment", &format!("password = \"{phrase}\"")),
+            vec![Confidence::High]
+        );
+    }
+
+    #[test]
+    fn secret_assignment_key_families_and_spellings() {
+        let v = cat(&["Nf3Wq9", "Zb7Xe2Km"]); // token-like, 12 chars
+        for key in [
+            "passphrase",
+            "pass_phrase",
+            "pass-phrase",
+            "pass phrase",
+            "signing key",
+            "signing_key",
+            "signing-key",
+            "encryption key",
+            "encryption_key",
+            "master-key",
+            "master key",
+            "session_key",
+            "session key",
+            "api key",
+            "access key",
+            "credentials",
+        ] {
+            let text = format!("{key} = {v}");
+            assert_eq!(
+                run("secret-assignment", &text),
+                vec![v.clone()],
+                "key spelling {key:?} must match"
+            );
+        }
+    }
+
+    #[test]
+    fn secret_assignment_new_negatives_stay_clean() {
+        let v = cat(&["q8Rz", "Lk2Vx9Tn4Wm7"]);
+        // Credential word in prose, no assignment.
+        assert!(run(
+            "secret-assignment",
+            &format!("the {v} policy rotates monthly")
+        )
+        .is_empty());
+        // Quoted but too short to be a secret.
+        assert!(run("secret-assignment", "password = \"short1\"").is_empty());
+        // Quoted low-entropy filler.
+        let filler = "a".repeat(12);
+        assert!(run("secret-assignment", &format!("passphrase = \"{filler}\"")).is_empty());
+        // Function-call and env-reference values stay clean.
+        assert!(run("secret-assignment", "signing key = get_signing_key()").is_empty());
+        assert!(run("secret-assignment", "passphrase = process.env.PASSPHRASE").is_empty());
     }
 
     #[test]
