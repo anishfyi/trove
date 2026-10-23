@@ -73,6 +73,10 @@ enum Commands {
         /// Leave the tool catalog out
         #[arg(long)]
         no_tools: bool,
+        /// Keep non-secret private categories (emails, hosts, paths) unredacted
+        /// in provider prompts; secrets are always redacted
+        #[arg(long)]
+        no_redact_nonsecret: bool,
     },
     /// Capture a durable learning into the trove (one entry file plus an index line)
     Remember {
@@ -152,18 +156,19 @@ fn main() -> Result<()> {
         Some(r) => r.canonicalize().unwrap_or_else(|_| r.clone()),
         None => find_repo_root(&PathBuf::from(".")),
     };
-    let ask_opts = |limit: usize| AskOptions {
+    let ask_opts = |limit: usize, no_redact_nonsecret: bool| AskOptions {
         budget: cli.budget.unwrap_or(ask::DEFAULT_BUDGET),
         limit,
         provider: cli.provider,
         model: cli.model.clone(),
+        no_redact_nonsecret,
     };
 
     let Some(command) = cli.command else {
         return repl::Repl {
             repo: ask_repo(),
             json: cli.json,
-            opts: ask_opts(12),
+            opts: ask_opts(12, false),
         }
         .run();
     };
@@ -173,9 +178,14 @@ fn main() -> Result<()> {
             question,
             limit,
             no_tools,
+            no_redact_nonsecret,
         } => {
             let knowledge = Knowledge::load(&ask_repo(), !no_tools);
-            let result = ask::ask(&knowledge, &question.join(" "), &ask_opts(limit));
+            let result = ask::ask(
+                &knowledge,
+                &question.join(" "),
+                &ask_opts(limit, no_redact_nonsecret),
+            );
             ask::print(&result, cli.json)?;
         }
         Commands::Remember {

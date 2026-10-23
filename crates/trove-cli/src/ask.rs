@@ -72,13 +72,22 @@ impl Knowledge {
         }
     }
 }
-
 #[derive(Debug, Clone)]
 pub struct AskOptions {
     pub budget: usize,
     pub limit: usize,
     pub provider: Provider,
     pub model: Option<String>,
+    /// Keep non-secret private categories (emails, hosts, paths) unredacted
+    /// in provider prompts. Secrets are always redacted; there is no opt-out.
+    pub no_redact_nonsecret: bool,
+}
+
+/// Redaction summary attached to provider answers.
+#[derive(Debug, Clone, Serialize, PartialEq)]
+pub struct RedactionSummary {
+    pub total: usize,
+    pub by_category: std::collections::BTreeMap<String, usize>,
 }
 
 #[derive(Debug, Serialize)]
@@ -98,6 +107,8 @@ pub struct AskResult {
     pub searched: usize,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub notes: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub redaction: Option<RedactionSummary>,
 }
 
 pub fn ask(k: &Knowledge, question: &str, opts: &AskOptions) -> AskResult {
@@ -115,19 +126,30 @@ pub fn ask(k: &Knowledge, question: &str, opts: &AskOptions) -> AskResult {
         ask::pack(hits, opts.budget, compact_cost)
     };
 
-    let (answer, answer_error) = if use_llm {
+    let (answer, answer_error, redaction) = if use_llm {
         let prompt = build_prompt(question, &packed.hits);
-        match llm::complete(
-            opts.provider,
-            opts.model.as_deref(),
-            llm::SYSTEM_PROMPT,
-            &prompt,
-        ) {
-            Ok(a) => (Some(a), None),
-            Err(e) => (None, Some(e.to_string())),
+        // Secrets are ALWAYS redacted before anything leaves the process:
+        // a redaction failure means no provider call at all.
+        match trove_redact::redact_for_llm(&prompt, opts.no_redact_nonsecret) {
+            Err(e) => (None, Some(format!("redaction refused: {e}")), None),
+            Ok(red) => {
+                let summary = RedactionSummary {
+                    total: red.total,
+                    by_category: red.by_category.clone(),
+                };
+                match llm::complete(
+                    opts.provider,
+                    opts.model.as_deref(),
+                    llm::SYSTEM_PROMPT,
+                    &red.text,
+                ) {
+                    Ok(a) => (Some(a), None, Some(summary)),
+                    Err(e) => (None, Some(e.to_string()), Some(summary)),
+                }
+            }
         }
     } else {
-        (None, None)
+        (None, None, None)
     };
 
     AskResult {
@@ -142,6 +164,7 @@ pub fn ask(k: &Knowledge, question: &str, opts: &AskOptions) -> AskResult {
         budget: packed.budget,
         sources: packed.hits,
         notes: k.notes.clone(),
+        redaction,
     }
 }
 
@@ -206,5 +229,137 @@ pub fn print(result: &AskResult, json: bool) -> Result<()> {
     for n in &result.notes {
         println!("-- {n}");
     }
+    if let Some(red) = &result.redaction {
+        if red.total > 0 {
+            let parts: Vec<String> = red
+                .by_category
+                .iter()
+                .map(|(c, n)| format!("{n} {c}"))
+                .collect();
+            println!(
+                "-- redacted before send: {} ({})",
+                red.total,
+                parts.join(", ")
+            );
+        }
+    }
     Ok(())
+}
+
+#[cfg(test)]
+mod provider_redact_tests {
+    use super::*;
+    use crate::llm::Provider;
+
+    fn scratch_trove(repo: &std::path::Path, entry: &str) {
+        let trove = repo.join(".claude/trove/memory/entries");
+        std::fs::create_dir_all(&trove).unwrap();
+        std::fs::write(
+            repo.join(".claude/trove/INDEX.md"),
+            "# T\n\n<!-- entries below -->\n",
+        )
+        .unwrap();
+        std::fs::write(trove.join("deploy-note.md"), entry).unwrap();
+    }
+
+    #[test]
+    fn provider_prompt_is_redacted_fail_closed() {
+        let _env = crate::llm::CMD_ENV_LOCK.lock().unwrap();
+        let dir = std::env::temp_dir().join(format!("trove-ask-redact-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let repo = dir.join("repo");
+        let home = dir.join("empty-home");
+        std::fs::create_dir_all(&home).unwrap();
+        let cat = |p: &[&str]| p.concat();
+        let key = cat(&["sk-", &"Ab12Cd34Ef56Gh78".repeat(3)]);
+        let phrase = cat(&["correct ", "horse staple ", "42"]);
+        scratch_trove(
+            &repo,
+            &format!(
+                "---\ntitle: Deploy note\ntype: decision\n---\n\nkey {key} and password = \"{phrase}\" and ops@northwind.io."
+            ),
+        );
+
+        std::env::set_var("HOME", &home);
+        std::env::set_var("TROVE_LLM_CMD", "cat");
+        let k = Knowledge::load(&repo, false);
+        let result = ask(
+            &k,
+            "deploy note key password",
+            &AskOptions {
+                budget: crate::ask::DEFAULT_BUDGET,
+                provider: Provider::Cmd,
+                model: None,
+                limit: 12,
+                no_redact_nonsecret: false,
+            },
+        );
+        let answer = result
+            .answer
+            .clone()
+            .unwrap_or_else(|| panic!("answer none: {:?}", result.answer_error));
+        assert!(answer.contains("[REDACTED:secret-1]"), "{answer}");
+        assert!(
+            !answer.contains(&key),
+            "provider prompt must not carry the key"
+        );
+        assert!(!answer.contains(&phrase), "passphrase must be redacted");
+        assert!(!answer.contains("Ab12Cd34"), "{answer}");
+        let red = result
+            .redaction
+            .as_ref()
+            .expect("redaction summary present");
+        assert!(red.total >= 3, "secret x2 + email: {}", red.total);
+        assert_eq!(red.by_category.get("secret"), Some(&2));
+
+        // Control: a clean entry produces a prompt with no secrets redacted.
+        let clean_repo = dir.join("repo-clean");
+        scratch_trove(
+            &clean_repo,
+            "---\ntitle: Deploy note\ntype: decision\n---\n\nRotation policy is documented in the runbook.",
+        );
+        let k2 = Knowledge::load(&clean_repo, false);
+        let result2 = ask(
+            &k2,
+            "deploy note rotation policy",
+            &AskOptions {
+                budget: crate::ask::DEFAULT_BUDGET,
+                provider: Provider::Cmd,
+                model: None,
+                limit: 12,
+                no_redact_nonsecret: false,
+            },
+        );
+        let answer2 = result2.answer.expect("cat echoes");
+        assert!(!answer2.contains("[REDACTED:secret"), "{answer2}");
+        assert_eq!(
+            result2
+                .redaction
+                .as_ref()
+                .unwrap()
+                .by_category
+                .get("secret"),
+            None
+        );
+
+        // Opt-out keeps non-secret categories but never secrets.
+        let result3 = ask(
+            &k,
+            "deploy note key password",
+            &AskOptions {
+                budget: crate::ask::DEFAULT_BUDGET,
+                provider: Provider::Cmd,
+                model: None,
+                limit: 12,
+                no_redact_nonsecret: true,
+            },
+        );
+        let answer3 = result3.answer.expect("cat echoes");
+        assert!(answer3.contains("ops@northwind.io"), "opt-out keeps emails");
+        assert!(!answer3.contains(&key), "secrets have no opt-out");
+
+        std::env::remove_var("TROVE_LLM_CMD");
+        std::env::remove_var("HOME");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 }

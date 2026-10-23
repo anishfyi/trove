@@ -33,6 +33,12 @@ pub struct Detector {
 }
 
 impl Detector {
+    /// Construct a detector from a raw run function. The run closure receives
+    /// the whole text and appends Detections (byte spans) to `out`.
+    pub fn new(name: &'static str, run: RunFn) -> Detector {
+        Detector { name, run }
+    }
+
     pub fn run(&self, text: &str, out: &mut Vec<Detection>) {
         (self.run)(text, out)
     }
