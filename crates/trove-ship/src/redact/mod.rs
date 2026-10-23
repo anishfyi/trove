@@ -6,94 +6,21 @@
 //! every text (detected spans plus every other occurrence of a known value).
 
 pub mod agent;
-pub mod detectors;
-pub mod troveignore;
 
 use std::collections::BTreeMap;
 
 use regex::{Regex, RegexBuilder};
 use serde::Serialize;
 
-pub use detectors::{Detection, LocalIdentity};
-pub use troveignore::TroveIgnore;
-
-/// What kind of private information a finding is.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum Category {
-    Secret,
-    Email,
-    Phone,
-    InternalHost,
-    IpAddress,
-    LocalPath,
-    Username,
-    CustomerName,
-    Denylisted,
-    AgentFlagged,
-}
-
-impl Category {
-    pub fn label(self) -> &'static str {
-        match self {
-            Self::Secret => "secret",
-            Self::Email => "email",
-            Self::Phone => "phone",
-            Self::InternalHost => "internal-host",
-            Self::IpAddress => "ip-address",
-            Self::LocalPath => "local-path",
-            Self::Username => "username",
-            Self::CustomerName => "customer-name",
-            Self::Denylisted => "denylisted",
-            Self::AgentFlagged => "agent-flagged",
-        }
-    }
-
-    /// Short tag used inside placeholders such as `[REDACTED:email-1]`.
-    fn tag(self) -> &'static str {
-        match self {
-            Self::Secret => "secret",
-            Self::Email => "email",
-            Self::Phone => "phone",
-            Self::InternalHost => "host",
-            Self::IpAddress => "ip",
-            Self::LocalPath => "path",
-            Self::Username => "user",
-            Self::CustomerName => "customer",
-            Self::Denylisted => "term",
-            Self::AgentFlagged => "private",
-        }
-    }
-
-    /// Whether two spellings that differ only in case are the same value.
-    fn case_insensitive(self) -> bool {
-        !matches!(self, Self::Secret)
-    }
-
-    pub fn parse(s: &str) -> Self {
-        match s.trim().to_ascii_lowercase().replace('_', "-").as_str() {
-            "secret" | "token" | "credential" | "password" | "key" => Self::Secret,
-            "email" => Self::Email,
-            "phone" | "phone-number" => Self::Phone,
-            "host" | "hostname" | "internal-host" | "domain" | "url" => Self::InternalHost,
-            "ip" | "ip-address" => Self::IpAddress,
-            "path" | "local-path" => Self::LocalPath,
-            "user" | "username" | "person" | "name" => Self::Username,
-            "customer" | "customer-name" | "client" | "company" => Self::CustomerName,
-            _ => Self::AgentFlagged,
-        }
-    }
-}
-
-/// How sure a detector is. High-confidence secrets are what the fail-closed
-/// verification refuses to let through.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Confidence {
-    Low,
-    Medium,
-    High,
-}
+// The detector registry, TroveIgnore rules and shared types live in the
+// trove-redact crate; re-exported here so every historical
+// `trove_ship::redact::*` path (incl. `redact::detectors::builtin`) keeps
+// working unchanged.
+pub use trove_redact::detectors;
+pub use trove_redact::detectors::{Detection, LocalIdentity};
+pub use trove_redact::troveignore;
+pub use trove_redact::troveignore::TroveIgnore;
+pub use trove_redact::{Category, Confidence};
 
 /// Where one occurrence was removed from.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

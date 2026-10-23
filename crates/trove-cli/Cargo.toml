@@ -21,4 +21,4 @@ trove-core = { path = "../trove-core" }
 trove-index = { path = "../trove-index" }
 trove-retrieve = { path = "../trove-retrieve" }
 trove-tools = { path = "../trove-tools" }
-trove-ship = { path = "../trove-ship" }
+trove-redact = { path = "../trove-redact" }

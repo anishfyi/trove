@@ -9,8 +9,8 @@ use std::sync::OnceLock;
 
 use regex::{Regex, RegexBuilder};
 
-use super::troveignore::TroveIgnore;
-use super::{Category, Confidence};
+use crate::troveignore::TroveIgnore;
+use crate::{Category, Confidence};
 
 /// One detected span.
 #[derive(Debug, Clone)]
