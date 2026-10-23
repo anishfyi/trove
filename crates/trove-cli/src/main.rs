@@ -62,7 +62,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Answer a question from your troves, repo docs, code index and installed tools
+    /// Answer a question with citations from troves, repo docs and the code index within a token budget
     Ask {
         /// The question
         #[arg(required = true, num_args = 1..)]
@@ -77,6 +77,12 @@ enum Commands {
         /// in provider prompts; secrets are always redacted
         #[arg(long)]
         no_redact_nonsecret: bool,
+    },
+    /// Turn a project and its trove into developer handoff docs, with secrets and
+    /// private information stripped before anything is written
+    Ship {
+        #[command(flatten)]
+        ship: trove_ship::cli::ShipCli,
     },
     /// Capture a durable learning into the trove (one entry file plus an index line)
     Remember {
@@ -123,7 +129,7 @@ enum Commands {
     },
     /// Show index status
     Status,
-    /// Progressive retrieval for a natural-language query
+    /// Assemble progressive context for a query within a token budget
     Query { query: String },
     /// Import L5 historical entries from ~/.claude/trove or ./.claude/trove
     ImportHistorical,
@@ -310,6 +316,17 @@ fn main() -> Result<()> {
                     );
                 }
                 None => println!("No index found. Run: trove index"),
+            }
+        }
+        Commands::Ship { mut ship } => {
+            // Global --repo feeds the ship target; global --json and the
+            // flattened --json are the same switch. One shared implementation
+            // behind both front doors.
+            ship.repo = repo.clone();
+            ship.json = ship.json || cli.json;
+            let code = trove_ship::cli::run(&ship, "trove ship");
+            if code != 0 {
+                std::process::exit(i32::from(code));
             }
         }
         Commands::Query { query } => {

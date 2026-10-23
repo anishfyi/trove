@@ -1,26 +1,24 @@
 ---
 name: ship
-description: Turn this project and its trove into developer handoff docs (overview, architecture, setup, conventions, decisions, gotchas) with secrets and private info stripped first. Use when the user says ship the docs, write handoff docs, onboarding docs, document this repo for a new dev or contractor, or export the trove safely. Runs trove-ship, which redacts secrets, emails, phones, internal hosts and IPs, local paths, usernames and customer names, writes a redaction report, and fails closed if a secret survives.
+description: Turn this project and its trove into developer handoff docs (overview, architecture, setup, conventions, decisions, gotchas) with secrets and private info stripped first. Use when the user says ship the docs, write handoff docs, onboarding docs, document this repo for a new dev or contractor, or export the trove safely. Runs `trove ship`, which redacts secrets, emails, phones, internal hosts and IPs, local paths, usernames and customer names, writes a redaction report, and fails closed if a secret survives.
 allowed-tools: Bash, Read, Write, Edit
 argument-hint: "[--format folder|single|site] [--out DIR] [--agent claude|codex|pi]"
 ---
 
 # Ship (handoff docs, private info stripped)
 
-`trove-ship` builds handoff docs from the engine index (`.trove/`), the project trove
+`trove ship` (the `trove-ship` binary stays supported as an alias with the same flags) builds
+handoff docs from the engine index (`.trove/`), the project trove
 (`./.claude/trove/entries`) and well-known files (README, build manifests, agent rules, ADRs,
 TODO markers). A redaction pass runs on every document before anything is written. The personal
 user trove in `~/.claude/trove` is never shipped.
 
 ## Steps
 
-1. **Find the binary.** Use the first that works and reuse it below as `SHIP`:
-
-   ```bash
-   command -v trove-ship                              # installed
-   cargo run -q -p trove-ship -- --version            # inside the trove repo
-   cargo install --git https://github.com/anishfyi/trove trove-ship   # install it
-   ```
+1. **Find the engine.** Use the `trove` binary if it is on `PATH`. Otherwise, inside a checkout of the
+   Trove repository, use `cargo run -p trove-cli -- ship`. In another repository, point cargo at a
+   Trove checkout: `cargo run --manifest-path <trove>/Cargo.toml -p trove-cli -- ship`. Written
+   `SHIP` below.
 
 2. **Preview without writing.** Show the user what would be removed:
 
@@ -57,7 +55,7 @@ user trove in `~/.claude/trove` is never shipped.
    ```
 
    Add `--reindex always` to refresh the engine index first. If the output directory exists and was
-   not written by trove-ship, it refuses unless `--force` is given; ask the user before forcing.
+   not written by ship, it refuses unless `--force` is given; ask the user before forcing.
 
 5. **Optional agent review.** If the user wants a second pass beyond the regexes, add
    `--agent claude`, `--agent codex` or `--agent pi` (or `--agent-cmd "<shell command>"` that reads

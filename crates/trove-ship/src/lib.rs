@@ -6,6 +6,7 @@
 //! (Markdown folder, single file or static site) -> fail-closed verification ->
 //! write docs plus a redaction report.
 
+pub mod cli;
 pub mod collect;
 pub mod docs;
 pub mod output;
