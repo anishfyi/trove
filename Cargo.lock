@@ -726,6 +726,7 @@ dependencies = [
  "trove-index",
  "trove-redact",
  "trove-retrieve",
+ "trove-ship",
  "trove-tools",
 ]
 
