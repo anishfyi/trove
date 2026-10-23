@@ -1,0 +1,116 @@
+{
+  "queries": [
+    {
+      "id": "e1",
+      "class": "exact",
+      "query": "bulk insert WAL transaction",
+      "ask_expected": ".claude/trove/memory/entries/wal-bulk-inserts.md",
+      "query_expected": "historical:wal-bulk-inserts"
+    },
+    {
+      "id": "e2",
+      "class": "exact",
+      "query": "token bucket",
+      "ask_expected": ".claude/trove/conventions/entries/token-bucket.md",
+      "query_expected": "historical:token-bucket"
+    },
+    {
+      "id": "e3",
+      "class": "exact",
+      "query": "exponential backoff",
+      "ask_expected": ".claude/trove/memory/entries/fetch-with-retry-backoff.md",
+      "query_expected": "historical:fetch-with-retry-backoff"
+    },
+    {
+      "id": "e4",
+      "class": "exact",
+      "query": "event sourcing replay",
+      "ask_expected": "docs/adr/0002-event-sourcing.md",
+      "query_expected": "historical:event-sourcing"
+    },
+    {
+      "id": "s1",
+      "class": "synonym",
+      "query": "make database changes faster",
+      "ask_expected": ".claude/trove/memory/entries/wal-bulk-inserts.md",
+      "query_expected": "historical:wal-bulk-inserts"
+    },
+    {
+      "id": "s2",
+      "class": "synonym",
+      "query": "throttle bursty callers",
+      "ask_expected": ".claude/trove/conventions/entries/token-bucket.md",
+      "query_expected": "historical:token-bucket"
+    },
+    {
+      "id": "s3",
+      "class": "synonym",
+      "query": "network call keeps failing",
+      "ask_expected": ".claude/trove/memory/entries/fetch-with-retry-backoff.md",
+      "query_expected": "historical:fetch-with-retry-backoff"
+    },
+    {
+      "id": "s4",
+      "class": "synonym",
+      "query": "avoid redoing finished work",
+      "ask_expected": ".claude/trove/conventions/entries/build-cache-convention.md",
+      "query_expected": "historical:build-cache-convention"
+    },
+    {
+      "id": "y1",
+      "class": "symbol",
+      "query": "runBulkInsert",
+      "ask_expected": "src/bulk-insert.js",
+      "query_expected": "historical:wal-bulk-inserts"
+    },
+    {
+      "id": "y2",
+      "class": "symbol",
+      "query": "fetchWithRetry",
+      "ask_expected": "src/retry.js",
+      "query_expected": "historical:fetch-with-retry-backoff"
+    },
+    {
+      "id": "y3",
+      "class": "symbol",
+      "query": "RateLimiter",
+      "ask_expected": "src/rate-limit.js",
+      "query_expected": "historical:token-bucket"
+    },
+    {
+      "id": "y4",
+      "class": "symbol",
+      "query": "build_cache",
+      "ask_expected": "tools/build_cache.py",
+      "query_expected": "historical:build-cache-convention"
+    },
+    {
+      "id": "w1",
+      "class": "why",
+      "query": "why do bulk inserts fail under load?",
+      "ask_expected": ".claude/trove/memory/entries/wal-bulk-inserts.md",
+      "query_expected": "historical:wal-bulk-inserts"
+    },
+    {
+      "id": "w2",
+      "class": "why",
+      "query": "why did we pick postgres?",
+      "ask_expected": "docs/adr/0001-postgres.md",
+      "query_expected": "historical:postgres-choice"
+    },
+    {
+      "id": "w3",
+      "class": "why",
+      "query": "why must events be published in order?",
+      "ask_expected": ".claude/trove/memory/entries/event-ordering.md",
+      "query_expected": "historical:event-ordering"
+    },
+    {
+      "id": "w4",
+      "class": "why",
+      "query": "why cache builds between steps?",
+      "ask_expected": ".claude/trove/conventions/entries/build-cache-convention.md",
+      "query_expected": "historical:build-cache-convention"
+    }
+  ]
+}
