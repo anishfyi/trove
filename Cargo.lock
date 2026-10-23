@@ -724,8 +724,8 @@ dependencies = [
  "serde_json",
  "trove-core",
  "trove-index",
+ "trove-redact",
  "trove-retrieve",
- "trove-ship",
  "trove-tools",
 ]
 
@@ -766,6 +766,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "trove-redact"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "ignore",
+ "regex",
+ "serde",
+]
+
+[[package]]
 name = "trove-retrieve"
 version = "0.2.0"
 dependencies = [
@@ -789,6 +799,7 @@ dependencies = [
  "serde_json",
  "trove-core",
  "trove-index",
+ "trove-redact",
 ]
 
 [[package]]

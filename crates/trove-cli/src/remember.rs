@@ -7,8 +7,8 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
-use trove_ship::redact::detectors::builtin;
-use trove_ship::redact::Category;
+use trove_redact::detectors::builtin;
+use trove_redact::Category;
 
 /// Canonical entry types the remember skill writes.
 pub const ENTRY_TYPES: [&str; 8] = [
@@ -205,7 +205,7 @@ fn guard_secrets(content: &str) -> Result<()> {
     for detector in builtin() {
         detector.run(content, &mut hits);
     }
-    let mut secret_hits: Vec<&trove_ship::redact::Detection> = hits
+    let mut secret_hits: Vec<&trove_redact::Detection> = hits
         .iter()
         .filter(|d| d.category == Category::Secret)
         .collect();

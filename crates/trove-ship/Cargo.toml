@@ -21,3 +21,4 @@ serde.workspace = true
 serde_json.workspace = true
 trove-core = { path = "../trove-core" }
 trove-index = { path = "../trove-index" }
+trove-redact = { path = "../trove-redact" }
