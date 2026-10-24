@@ -724,6 +724,7 @@ dependencies = [
  "serde_json",
  "trove-core",
  "trove-index",
+ "trove-mcp",
  "trove-redact",
  "trove-retrieve",
  "trove-ship",
@@ -764,6 +765,13 @@ dependencies = [
  "tree-sitter-typescript",
  "trove-core",
  "walkdir",
+]
+
+[[package]]
+name = "trove-mcp"
+version = "0.2.0"
+dependencies = [
+ "serde_json",
 ]
 
 [[package]]
