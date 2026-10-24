@@ -8,6 +8,7 @@ members = [
     "crates/trove-tools",
     "crates/trove-ship",
     "crates/trove-redact",
+    "crates/trove-mcp",
 ]
 
 [workspace.package]

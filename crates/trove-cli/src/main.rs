@@ -1,9 +1,4 @@
-mod ask;
-mod llm;
-mod paths;
-mod remember;
-mod repl;
-mod tools;
+use trove_cli::{ask, llm, paths, remember, repl, tools};
 
 use std::path::PathBuf;
 
@@ -18,9 +13,15 @@ use trove_index::{IndexOptions, Indexer};
 use trove_retrieve::budget::ContextBudget;
 use trove_retrieve::pipeline::{import_historical, RetrievalPipeline};
 
-use crate::ask::{AskOptions, Knowledge};
-use crate::llm::Provider;
-use crate::paths::{find_repo_root, home_dir};
+use ask::{AskOptions, Knowledge};
+use llm::Provider;
+use paths::{find_repo_root, home_dir};
+
+#[derive(Subcommand)]
+enum McpCommand {
+    /// Run the stdio MCP server (read-only: trove_ask, trove_query, trove_status, trove_search_tools)
+    Serve,
+}
 
 #[derive(Parser)]
 #[command(
@@ -77,6 +78,11 @@ enum Commands {
         /// in provider prompts; secrets are always redacted
         #[arg(long)]
         no_redact_nonsecret: bool,
+    },
+    /// Serve trove memory read-only over the Model Context Protocol (stdio)
+    Mcp {
+        #[command(subcommand)]
+        cmd: McpCommand,
     },
     /// Turn a project and its trove into developer handoff docs, with secrets and
     /// private information stripped before anything is written
@@ -318,6 +324,11 @@ fn main() -> Result<()> {
                 None => println!("No index found. Run: trove index"),
             }
         }
+        Commands::Mcp { cmd } => match cmd {
+            McpCommand::Serve => {
+                trove_cli::mcp::serve(&repo, &home_dir()).map_err(anyhow::Error::new)?;
+            }
+        },
         Commands::Ship { mut ship } => {
             // Global --repo feeds the ship target; global --json and the
             // flattened --json are the same switch. One shared implementation
