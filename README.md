@@ -9,7 +9,7 @@
 <p align="center">
   <a href="https://github.com/anishfyi/trove/releases/latest"><img src="https://img.shields.io/github/v/release/anishfyi/trove?color=c0613a&label=release" alt="Latest release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/anishfyi/trove?color=5b9c6a" alt="MIT license"></a>
-  <a href="https://anishfyi.com/trove/"><img src="https://img.shields.io/badge/site-anishfyi.com%2Ftrove-2f6f6a" alt="Live site"></a>
+  <a href="https://trove.velofy.co/"><img src="https://img.shields.io/badge/site-trove.velofy.co-2f6f6a" alt="Live site"></a>
 </p>
 
 Coding agents forget everything between sessions and only see what fits in their context window.
@@ -26,7 +26,7 @@ context a task needs, at the right level of detail.
 Everything is plain files in your repo or home directory. It runs locally, works offline and is
 MIT licensed.
 
-Live page: **https://anishfyi.com/trove/**
+Live page: **https://trove.velofy.co/**
 
 ---
 

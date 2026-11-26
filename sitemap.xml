@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://anishfyi.com/trove/</loc>
-    <lastmod>2026-10-16</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-    <image:image>
-      <image:loc>https://anishfyi.com/trove/og.png</image:loc>
-    </image:image>
+    <loc>https://trove.velofy.co/</loc>
+    <lastmod>2026-11-26</lastmod>
   </url>
 </urlset>
